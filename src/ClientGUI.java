@@ -12,6 +12,8 @@ import java.awt.event.ActionListener;
 public class ClientGUI extends JFrame implements ActionListener {
 
     private static final long serialVersionUID = 1L;
+
+    private boolean loginfailed = false;
     // will first hold "Username:", later on "Enter message"
     private JLabel label;
 
@@ -20,11 +22,11 @@ public class ClientGUI extends JFrame implements ActionListener {
     private JPasswordField passwordField;
 
     // to hold the Username and later on the messages
-    private JTextField screenName;
+    private JTextField chatTextField;
     // to hold the server address an the port number
     private JTextField tfServer, tfPort;
     // to Logout and get the list of the users
-    private JButton login, logout,register, whoIsIn;
+    private JButton login, logout,register, whoIsIn,send;
     // for the chat room
     private JTextArea ta;
     // if it is for connection
@@ -41,6 +43,9 @@ public class ClientGUI extends JFrame implements ActionListener {
         super("Chat Client");
         defaultPort = port;
         defaultHost = host;
+
+
+
 
         // The NorthPanel with:
         JPanel northPanel = new JPanel(new GridLayout(4, 1));
@@ -62,11 +67,11 @@ public class ClientGUI extends JFrame implements ActionListener {
 
         // adds the Server and port field to the GUI
         northPanel.add(serverAndPort);
-        JPanel userandpass = new JPanel(new GridLayout(1, 5, 1, 3));
+        JPanel userandpass = new JPanel(new GridLayout(1, 4, 1, 3));
 
         usernameField = new JTextField("");
         passwordField = new JPasswordField("");
-        passwordField.setHorizontalAlignment(SwingConstants.RIGHT);
+        //passwordField.setHorizontalAlignment(SwingConstants.RIGHT);
 
         userandpass.add(new JLabel("Username: "));
         userandpass.add(usernameField);
@@ -75,20 +80,23 @@ public class ClientGUI extends JFrame implements ActionListener {
 
         northPanel.add(userandpass);
 
-        // the Label and the TextField
-        label = new JLabel("Enter your username below", SwingConstants.CENTER);
-        northPanel.add(label);
-
-        screenName = new JTextField("Anonymous");
-        screenName.setBackground(Color.WHITE);
-        northPanel.add(screenName);
         add(northPanel, BorderLayout.NORTH);
 
         // The CenterPanel which is the chat room
         ta = new JTextArea("Welcome to the Chat room\n", 80, 80);
-        JPanel centerPanel = new JPanel(new GridLayout(1, 1));
+        this.ta.setSize(400,400);
+        JPanel centerPanel = new JPanel(new GridLayout(3, 1,1,3));
         centerPanel.add(new JScrollPane(ta));
         ta.setEditable(false);
+
+
+        // the Label and the TextField
+        label = new JLabel("Enter message below", SwingConstants.CENTER);
+        centerPanel.add(label);
+
+        chatTextField = new JTextField("");
+        chatTextField.setBackground(Color.WHITE);
+        centerPanel.add(chatTextField);
         add(centerPanel, BorderLayout.CENTER);
 
         // the 3 buttons
@@ -112,7 +120,7 @@ public class ClientGUI extends JFrame implements ActionListener {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(600, 600);
         setVisible(true);
-        screenName.requestFocus();
+        chatTextField.requestFocus();
 
     }
 
@@ -122,6 +130,16 @@ public class ClientGUI extends JFrame implements ActionListener {
         ta.setCaretPosition(ta.getText().length() - 1);
     }
 
+    void loginAccepted() {
+        JOptionPane.showMessageDialog(this, "Login Accepted");
+    }
+    void loginFailed() {
+
+        JOptionPane.showMessageDialog(this, "Login Failed\n Please try again!");
+        loginfailed = true;
+        login.setEnabled(true);
+    }
+
     // called by the GUI is the connection failed
     // we reset our buttons, label, textfield
     void connectionFailed() {
@@ -129,8 +147,8 @@ public class ClientGUI extends JFrame implements ActionListener {
         register.setEnabled(true);
         logout.setEnabled(false);
         whoIsIn.setEnabled(false);
-        label.setText("Enter your username below");
-        screenName.setText("Anonymous");
+        //label.setText("Enter your username below");
+        //screenName.setText("");
         // reset port number and host name as a construction time
         tfPort.setText("" + defaultPort);
         tfServer.setText(defaultHost);
@@ -138,7 +156,7 @@ public class ClientGUI extends JFrame implements ActionListener {
         tfServer.setEditable(false);
         tfPort.setEditable(false);
         // don't react to a <CR> after the username
-        screenName.removeActionListener(this);
+        chatTextField.removeActionListener(this);
         connected = false;
     }
 
@@ -161,8 +179,8 @@ public class ClientGUI extends JFrame implements ActionListener {
         // ok it is coming from the JTextField
         if (connected) {
             // just have to send the message
-            client.sendMessage(new ChatMessage(ChatMessage.MESSAGE, screenName.getText()));
-            screenName.setText("");
+            client.sendMessage(new ChatMessage(ChatMessage.MESSAGE, chatTextField.getText()));
+            chatTextField.setText("");
             return;
         }
 
@@ -196,10 +214,10 @@ public class ClientGUI extends JFrame implements ActionListener {
             // test if we can start the Client
             if (!client.start())
                 return;
-            screenName.setText("");
+            chatTextField.setText("");
             usernameField.setText("");
             passwordField.setText("");
-            label.setText("Enter your message below");
+            //label.setText("Enter your message below");
             connected = true;
 
             // disable login button
@@ -211,7 +229,7 @@ public class ClientGUI extends JFrame implements ActionListener {
             tfServer.setEditable(false);
             tfPort.setEditable(false);
             // Action listener for when the user enter a message
-            screenName.addActionListener(this);
+            chatTextField.addActionListener(this);
         }
 
     }

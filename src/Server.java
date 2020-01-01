@@ -309,7 +309,7 @@ public class Server {
                         }
                         if (loginCheck == true) {
                             sOutput.writeObject("trueLogin");
-                            sOutput.writeObject(readUsername + " Login Accepted!");
+                            //sOutput.writeObject(readUsername + " Login Accepted!");
                             username = readUsername;
                             System.out.println("Client: " + socket + " logged in with username " + readUsername);
                             break;

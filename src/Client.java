@@ -244,12 +244,16 @@ public class Client  {
             while(true) {
                 try {
                     String msg = (String) sInput.readObject();
+
                     // if console mode print the message and add back the prompt
                     if(clientGUI == null) {
                         System.out.println(msg);
                         System.out.print("> ");
-                    }
-                    else {
+                    } else if (msg.equalsIgnoreCase("trueLogin")) {
+                        clientGUI.loginAccepted();
+                    } else if (msg.equalsIgnoreCase("falseLogin")) {
+                        clientGUI.loginFailed();
+                    } else {
                         clientGUI.append(msg);
                     }
                 }

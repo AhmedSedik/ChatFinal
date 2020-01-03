@@ -56,16 +56,20 @@ public class Client  {
     public boolean start() {
         // try to connect to the server
         try {
+
             socket = new Socket(server, port);
         }
         // if it failed not much I can so
         catch(Exception ec) {
-            display("Error connectiong to server:" + ec);
+            display("Error connecting to server:" + ec);
             return false;
         }
 
-        String msg = "Connection accepted " + socket.getInetAddress() + ":" + socket.getPort();
+        String msg = "Attempting Conneting to:  " + socket.getInetAddress() + ":" + socket.getPort();
         display(msg);
+
+
+
 
         /* Creating both Data Stream */
         try
@@ -77,11 +81,12 @@ public class Client  {
             display("Exception creating new Input/output Streams: " + eIO);
             return false;
         }
-
+        sendChoice(clientGUI.userChoices);
         // creates the Thread to listen from the server
         new ListenFromServer().start();
         // Send our username to the server this is the only message that we
         // will send as a String. All other messages will be ChatMessage objects
+
         try
         {
             sOutput.writeObject(username);
@@ -92,6 +97,7 @@ public class Client  {
             disconnect();
             return false;
         }
+
         // success we inform the caller that it worked
         return true;
     }
@@ -118,14 +124,13 @@ public class Client  {
         }
     }
 
-    void SendUserInfo(ChatMessage user, ChatMessage pass) {
-        try{
-        sOutput.writeObject(user);
-        sOutput.writeObject(pass);
-    }
+    void sendChoice(String msg) {
+        try {
+            sOutput.writeObject(msg);
+        }
         catch(IOException e) {
-        display("Exception writing to server: " + e);
-    }
+            display("Exception writing to server: " + e);
+        }
     }
 
     /*
@@ -251,14 +256,26 @@ public class Client  {
                         System.out.print("> ");
                     } else if (msg.equalsIgnoreCase("trueLogin")) {
                         clientGUI.loginAccepted();
+                        display("Login Accepted!");
                     } else if (msg.equalsIgnoreCase("falseLogin")) {
                         clientGUI.loginFailed();
+                        display("Login Failed!");
+                        socket.close();
+
+                    } else if (msg.equalsIgnoreCase("trueRegister")) {
+                        clientGUI.registerSucceed();
+                        display("Registration Successful!");
+                    } else if (msg.equalsIgnoreCase("falseRegister")) {
+                        clientGUI.registerFailed();
+                        display("Registration Failed!");
+                        socket.close();
                     } else {
                         clientGUI.append(msg);
                     }
                 }
                 catch(IOException e) {
-                    display("Server has close the connection: " + e);
+                    //display("false Login or Register");
+                    display("Connection Interrupted \n Cause: server could have closed the Connection\n or couldn't connect to the server \n" + e);
                     if(clientGUI != null)
                         clientGUI.connectionFailed();
                     break;

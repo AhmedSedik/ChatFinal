@@ -21,12 +21,15 @@ public class ServerGUI extends JFrame implements ActionListener, WindowListener 
     private static final long serialVersionUID = 1L;
     // the stop and start buttons
     private JButton stopStart;
+    //WhoisIn Button
+    private JButton whoIsIn;
     // JTextArea for the chat room and the events
     private JTextArea chat, event;
     // The port number
     private JTextField tPortNumber;
     // my server
     private Server server;
+    private Server.ClientThread clientThread;
 
 
     // server constructor that receive the port to listen to for connection as parameter
@@ -41,7 +44,10 @@ public class ServerGUI extends JFrame implements ActionListener, WindowListener 
         // to stop or start the server, we start with "Start"
         stopStart = new JButton("Start");
         stopStart.addActionListener(this);
+        whoIsIn = new JButton("WhoisIn");
+        whoIsIn.addActionListener(this);
         north.add(stopStart);
+        north.add(whoIsIn);
         add(north, BorderLayout.NORTH);
 
         // the event and chat room
@@ -76,29 +82,36 @@ public class ServerGUI extends JFrame implements ActionListener, WindowListener 
 
     // start or stop where clicked
     public void actionPerformed(ActionEvent e) {
-        // if running we have to stop
-        if(server != null) {
-            server.stop();
-            server = null;
-            tPortNumber.setEditable(true);
-            stopStart.setText("Start");
-            return;
+
+        Object evenObject = e.getSource();
+        if (evenObject == stopStart) {
+            // if running we have to stop
+            if (server != null) {
+                server.stop();
+                server = null;
+                tPortNumber.setEditable(true);
+                stopStart.setText("Start");
+                return;
+            }
+            // OK start the server
+            int port;
+            try {
+                port = Integer.parseInt(tPortNumber.getText().trim());
+            } catch (Exception er) {
+                appendEvent("Invalid port number");
+                return;
+            }
+            // ceate a new Server
+            server = new Server(port, this);
+            // and start it as a thread
+            new ServerRunning().start();
+            stopStart.setText("Stop");
+            tPortNumber.setEditable(false);
+        } else {
+
+            server.loggedClients();
         }
-        // OK start the server
-        int port;
-        try {
-            port = Integer.parseInt(tPortNumber.getText().trim());
-        }
-        catch(Exception er) {
-            appendEvent("Invalid port number");
-            return;
-        }
-        // ceate a new Server
-        server = new Server(port, this);
-        // and start it as a thread
-        new ServerRunning().start();
-        stopStart.setText("Stop");
-        tPortNumber.setEditable(false);
+
     }
 
     // entry point to start the Server

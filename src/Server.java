@@ -126,21 +126,21 @@ public class Server {
      *  to broadcast a message to all Clients
      */
     private synchronized void broadcast(String message) {
-        // add HH:mm:ss and \n to the message
+
         String time = simpleDateFormat.format(new Date());
-        String messageLf = time + " " + message + "\n";
+        String fullMessage = time + " " + message + "\n";
         // display message on console or GUI
         if(serverGUI == null)
-            System.out.print(messageLf);
+            System.out.print(fullMessage);
         else
-            serverGUI.appendRoom(messageLf);     // append in the room window
+            serverGUI.appendRoom(fullMessage);     // append in the room window
 
         // we loop in reverse order in case we would have to remove a Client
         // because it has disconnected
         for(int i = clients.size(); --i >= 0;) {
             ClientThread ct = clients.get(i);
             // try to write to the Client if it fails remove it from the list
-            if(!ct.writeMsg(messageLf)) {
+            if(!ct.writeMsg(fullMessage)) {
                 clients.remove(i);
                 display("Disconnected Client " + ct.username + " removed from list.");
             }
@@ -151,9 +151,9 @@ public class Server {
     synchronized void remove(int id) {
         // scan the array list until we found the Id
         for(int i = 0; i < clients.size(); ++i) {
-            ClientThread ct = clients.get(i);
+            ClientThread clientThread = clients.get(i);
             // found it
-            if(ct.id == id) {
+            if(clientThread.id == id) {
                 clients.remove(i);
                 return;
             }
@@ -199,15 +199,13 @@ public class Server {
         Socket socket;
         ObjectInputStream sInput;
         ObjectOutputStream sOutput;
-        // my unique id (easier for deconnection)
+        // my unique id (used in disconnecting)
         int id;
         // the Username of the Client
         String username;
 
-        String password;
-        // the only type of message a will receive
         ChatMessage message;
-        // the date I connect
+
         String date;
 
         // Constructor
@@ -226,12 +224,23 @@ public class Server {
                 sOutput = new ObjectOutputStream(socket.getOutputStream());
                 sInput  = new ObjectInputStream(socket.getInputStream());
                 // read the username
-                //TODO check user name
-                login();
-                //username = (String) sInput.readObject();
+                //TODO check user Choice  Done
+
+
+                String userChoice = (String) sInput.readObject();
+
+                if (userChoice.equalsIgnoreCase("/register")) {
+                    registerUser();
+                } else if (userChoice.equalsIgnoreCase("/Login")) {
+                    userLogin();
+                } else {
+                    display("Failed to Login or Register");
+                }
+
+
                 display(username + " just connected.");
             }
-            catch (IOException e) {
+            catch (IOException | ClassNotFoundException e) {
                 display("Exception creating new Input/output Streams: " + e);
                 return;
             }
@@ -265,7 +274,8 @@ public class Server {
                         broadcast(username + ": " + message);
                         break;
                     case ChatMessage.LOGOUT:
-                        display(username + " disconnected with a LOGOUT message.");
+                        broadcast(username + " disconnected");
+                        display(username + " disconnected");
                         keepGoing = false;
                         break;
                     case ChatMessage.WHOISIN:
@@ -283,8 +293,50 @@ public class Server {
             remove(id);
             close();
         }
+        private void registerUser() {
+            try (
+                    CSVWriter writer = new CSVWriter(new FileWriter(users.getAbsoluteFile(), true));
 
-        public void login() throws IOException {
+            ) {
+
+                String readUsername;
+                String readPassword;
+
+                boolean userExists = false;
+                while (!userExists) {
+
+                    while(((readUsername = (String) sInput.readObject()) != null) &&
+                            ((readPassword = (String) sInput.readObject()) != null)) {
+
+                        String[] nextRecord;
+                        userExists = false;
+                        CSVReader reader = new CSVReader(new FileReader(users));
+                        while ((((nextRecord = reader.readNext())) != null) && userExists == false) {
+                            if (nextRecord[0].equals(readUsername)) {
+                                System.out.println("a client entered an already taken username");
+                                sOutput.writeObject("falseRegister");
+                                userExists = true;
+                            }
+                        }
+                        if (!userExists) {
+
+                            String[] data = {readUsername, readPassword};
+                            System.out.println(socket +"Registered New User");
+                            sOutput.writeObject("trueRegister");
+                            username = readUsername;
+                            writer.writeNext(data);
+                            userExists = true;
+                            break;
+                        }
+                    }
+                }
+            } catch (IOException | ClassNotFoundException | CsvValidationException e) {
+                e.printStackTrace();
+            }
+        }
+
+        //TODO if user already logged in
+        public void userLogin() throws IOException {
 
             try
 //                    CSVWriter writer = new CSVWriter(new FileWriter(users.getAbsoluteFile(), true));
@@ -301,13 +353,13 @@ public class Server {
                         String[] nextRecord;
                         CSVReader reader = new CSVReader(new FileReader(users));
 
-                        while ((((nextRecord = reader.readNext())) != null) && loginCheck == false) {
+                        while ((((nextRecord = reader.readNext())) != null) && !loginCheck) {
                             if (nextRecord[0].equals(readUsername)) {
                                 if (nextRecord[1].equals(readPassword))
                                     loginCheck = true;
                             }
                         }
-                        if (loginCheck == true) {
+                        if (loginCheck) {
                             sOutput.writeObject("trueLogin");
                             //sOutput.writeObject(readUsername + " Login Accepted!");
                             username = readUsername;
@@ -321,6 +373,14 @@ public class Server {
             } catch (
                     CsvValidationException | ClassNotFoundException e) {
                 e.printStackTrace();
+            }
+        }
+        public void sendMessage(ChatMessage msg) {
+            try {
+                sOutput.writeObject(msg);
+            }
+            catch(IOException e) {
+                display("Exception writing to server: " + e);
             }
         }
 
@@ -360,6 +420,15 @@ public class Server {
                 display(e.toString());
             }
             return true;
+        }
+
+
+    }
+
+    void loggedClients() {
+        for(int i = 0; i < clients.size(); ++i) {
+            ClientThread ct = clients.get(i);
+            serverGUI.appendEvent((i+1) + ") " + ct.username + " since " + ct.date);
         }
     }
 }

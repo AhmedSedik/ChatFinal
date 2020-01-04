@@ -17,7 +17,7 @@ import java.util.Date;
  */
 public class Server {
     // a unique ID for each connection
-    private static int uniqueId;
+    public static int uniqueId;
     // an ArrayList to keep the list of the Client
     private ArrayList<ClientThread> clients;
     // if I am in a GUI
@@ -27,9 +27,11 @@ public class Server {
     // the port number to listen for connection
     private int port;
     // the boolean that will be turned off to stop the server
-    private boolean keepGoing;
+    public boolean keepGoing;
     //the csv File
-    public  static File users;
+    public static File users;
+
+    public boolean connected;
 
 
     /*
@@ -54,41 +56,37 @@ public class Server {
     public void start() {
         keepGoing = true;
         /* create socket server and wait for connection requests */
-        try
-        {
+        try {
             // the socket used by the server
             ServerSocket serverSocket = new ServerSocket(port);
 
             // infinite loop to wait for connections
-            while(keepGoing)
-            {
+            while (keepGoing) {
                 // format message saying we are waiting
                 display("Server waiting for Clients on port " + port + ".");
 
-                Socket socket = serverSocket.accept();  	// accept connection
+                Socket socket = serverSocket.accept();    // accept connection
                 // if I was asked to stop
-                if(!keepGoing)
+                if (!keepGoing)
                     break;
                 ClientThread thread = new ClientThread(socket);  // make a thread of it
-                clients.add(thread);									// save it in the ArrayList
+                clients.add(thread);                                    // save it in the ArrayList
                 thread.start();
             }
             // I was asked to stop
             try {
                 serverSocket.close();
-                for(int i = 0; i < clients.size(); ++i) {
+                for (int i = 0; i < clients.size(); ++i) {
                     ClientThread clientThread = clients.get(i);
                     try {
                         clientThread.sInput.close();
                         clientThread.sOutput.close();
                         clientThread.socket.close();
-                    }
-                    catch(IOException ioE) {
+                    } catch (IOException ioE) {
                         // not much I can do
                     }
                 }
-            }
-            catch(Exception e) {
+            } catch (Exception e) {
                 display("Exception closing the server and clients: " + e);
             }
         }
@@ -98,6 +96,7 @@ public class Server {
             display(msg);
         }
     }
+
     /*
      * For the GUI to stop the server
      */
@@ -107,42 +106,43 @@ public class Server {
         // Socket socket = serverSocket.accept();
         try {
             new Socket("localhost", port);
-        }
-        catch(Exception e) {
+        } catch (Exception e) {
             // nothing I can really do
         }
     }
+
     /*
      * Display an event (not a message) to the console or the GUI
      */
     private void display(String msg) {
         String time = simpleDateFormat.format(new Date()) + " " + msg;
-        if(serverGUI == null)
+        if (serverGUI == null)
             System.out.println(time);
         else
             serverGUI.appendEvent(time + "\n");
     }
+
     /*
      *  to broadcast a message to all Clients
      */
-    private synchronized void broadcast(String message) {
+    public synchronized void broadcast(String message) {
 
         String time = simpleDateFormat.format(new Date());
         String fullMessage = time + " " + message + "\n";
         // display message on console or GUI
-        if(serverGUI == null)
+        if (serverGUI == null)
             System.out.print(fullMessage);
         else
             serverGUI.appendRoom(fullMessage);     // append in the room window
 
         // we loop in reverse order in case we would have to remove a Client
         // because it has disconnected
-        for(int i = clients.size(); --i >= 0;) {
-            ClientThread ct = clients.get(i);
+        for (int i = clients.size(); --i >= 0; ) {
+            ClientThread clientThread = clients.get(i);
             // try to write to the Client if it fails remove it from the list
-            if(!ct.writeMsg(fullMessage)) {
+            if (!clientThread.writeMsg(fullMessage)) {
                 clients.remove(i);
-                display("Disconnected Client " + ct.username + " removed from list.");
+                display("Disconnected Client " + clientThread.username + " removed from list.");
             }
         }
     }
@@ -150,12 +150,24 @@ public class Server {
     // for a client who logoff using the LOGOUT message
     synchronized void remove(int id) {
         // scan the array list until we found the Id
-        for(int i = 0; i < clients.size(); ++i) {
+        for (int i = 0; i < clients.size(); ++i) {
             ClientThread clientThread = clients.get(i);
             // found it
-            if(clientThread.id == id) {
+            if (clientThread.id == id) {
                 clients.remove(i);
                 return;
+            }
+        }
+    }
+
+    synchronized void kickClient(int id) {
+        for (int i = clients.size(); --i >= 0; ) {
+            ClientThread clientThread = clients.get(i);
+            // try to write to the Client if it fails remove it from the list
+            if (clientThread.id == id) {
+                clients.remove(i);
+                clientThread.writeMsg("kicked");
+                display("Disconnected Client " + clientThread.username + " removed from list.");
             }
         }
     }
@@ -171,12 +183,11 @@ public class Server {
         // start server on port 1500 unless a PortNumber is specified
         int portNumber = 1500;
 
-        switch(args.length) {
+        switch (args.length) {
             case 1:
                 try {
                     portNumber = Integer.parseInt(args[0]);
-                }
-                catch(Exception e) {
+                } catch (Exception e) {
                     System.out.println("Invalid port number.");
                     System.out.println("Usage is: > java Server [portNumber]");
                     return;
@@ -193,7 +204,9 @@ public class Server {
         server.start();
     }
 
-    /** One instance of this thread will run for each client */
+    /**
+     * One instance of this thread will run for each client
+     */
     class ClientThread extends Thread {
         // the socket where to listen/talk
         Socket socket;
@@ -208,6 +221,7 @@ public class Server {
 
         String date;
 
+
         // Constructor
         ClientThread(Socket socket) {
 
@@ -218,11 +232,10 @@ public class Server {
             this.socket = socket;
             /* Creating both Data Stream */
             System.out.println("Thread trying to create Object Input/Output Streams");
-            try
-            {
+            try {
                 // create output first
                 sOutput = new ObjectOutputStream(socket.getOutputStream());
-                sInput  = new ObjectInputStream(socket.getInputStream());
+                sInput = new ObjectInputStream(socket.getInputStream());
                 // read the username
                 //TODO check user Choice  Done
 
@@ -237,11 +250,13 @@ public class Server {
                     display("Failed to Login or Register");
                 }
 
-
+                broadcast(username + " just connected.");
                 display(username + " just connected.");
-            }
-            catch (IOException | ClassNotFoundException e) {
+                connected = true;
+
+            } catch (IOException | ClassNotFoundException e) {
                 display("Exception creating new Input/output Streams: " + e);
+                connected = false;
                 return;
             }
 
@@ -252,23 +267,22 @@ public class Server {
         public void run() {
             // to loop until LOGOUT
             boolean keepGoing = true;
-            while(keepGoing) {
+            while (keepGoing) {
                 // read a String (which is an object)
                 try {
                     message = (ChatMessage) sInput.readObject();
-                }
-                catch (IOException e) {
+                } catch (IOException e) {
+                    // in case client quit while server running reading stream
                     display(username + " Exception reading Streams: " + e);
                     break;
-                }
-                catch(ClassNotFoundException e2) {
+                } catch (ClassNotFoundException e2) {
                     break;
                 }
                 // the messaage part of the ChatMessage
                 String message = this.message.getMessage();
 
                 // Switch on the type of message receive
-                switch(this.message.getType()) {
+                switch (this.message.getType()) {
 
                     case ChatMessage.MESSAGE:
                         broadcast(username + ": " + message);
@@ -278,12 +292,12 @@ public class Server {
                         display(username + " disconnected");
                         keepGoing = false;
                         break;
-                    case ChatMessage.WHOISIN:
+                    case ChatMessage.OnlineUsers:
                         writeMsg("List of the users connected at " + simpleDateFormat.format(new Date()) + "\n");
                         // scan al the users connected
-                        for(int i = 0; i < clients.size(); ++i) {
+                        for (int i = 0; i < clients.size(); ++i) {
                             ClientThread ct = clients.get(i);
-                            writeMsg((i+1) + ") " + ct.username + " since " + ct.date);
+                            writeMsg((i + 1) + ") " + ct.username + " since " + ct.date);
                         }
                         break;
                 }
@@ -293,6 +307,7 @@ public class Server {
             remove(id);
             close();
         }
+
         private void registerUser() {
             try (
                     CSVWriter writer = new CSVWriter(new FileWriter(users.getAbsoluteFile(), true));
@@ -305,13 +320,13 @@ public class Server {
                 boolean userExists = false;
                 while (!userExists) {
 
-                    while(((readUsername = (String) sInput.readObject()) != null) &&
+                    while (((readUsername = (String) sInput.readObject()) != null) &&
                             ((readPassword = (String) sInput.readObject()) != null)) {
 
                         String[] nextRecord;
                         userExists = false;
                         CSVReader reader = new CSVReader(new FileReader(users));
-                        while ((((nextRecord = reader.readNext())) != null) && userExists == false) {
+                        while ((((nextRecord = reader.readNext())) != null) && !userExists) {
                             if (nextRecord[0].equals(readUsername)) {
                                 System.out.println("a client entered an already taken username");
                                 sOutput.writeObject("falseRegister");
@@ -321,7 +336,7 @@ public class Server {
                         if (!userExists) {
 
                             String[] data = {readUsername, readPassword};
-                            System.out.println(socket +"Registered New User");
+                            System.out.println(socket + "Registered New User");
                             sOutput.writeObject("trueRegister");
                             username = readUsername;
                             writer.writeNext(data);
@@ -338,36 +353,32 @@ public class Server {
         //TODO if user already logged in
         public void userLogin() throws IOException {
 
-            try
-//                    CSVWriter writer = new CSVWriter(new FileWriter(users.getAbsoluteFile(), true));
+            try {
 
-             {
-
-             //  String userChoice = (String) sInput.readObject();
                 String readUsername;
                 String readPassword;
 
-                    boolean loginCheck = false;
-                    while (((readUsername = (String) sInput.readObject()) != null) &&
-                            ((readPassword = (String) sInput.readObject()) != null)) {
-                        String[] nextRecord;
-                        CSVReader reader = new CSVReader(new FileReader(users));
+                boolean loginCheck = false;
+                while (((readUsername = (String) sInput.readObject()) != null) &&
+                        ((readPassword = (String) sInput.readObject()) != null)) {
+                    String[] nextRecord;
+                    CSVReader reader = new CSVReader(new FileReader(users));
 
-                        while ((((nextRecord = reader.readNext())) != null) && !loginCheck) {
-                            if (nextRecord[0].equals(readUsername)) {
-                                if (nextRecord[1].equals(readPassword))
-                                    loginCheck = true;
-                            }
+                    while ((((nextRecord = reader.readNext())) != null) && !loginCheck) {
+                        if (nextRecord[0].equals(readUsername)) {
+                            if (nextRecord[1].equals(readPassword))
+                                loginCheck = true;
                         }
-                        if (loginCheck) {
-                            sOutput.writeObject("trueLogin");
-                            //sOutput.writeObject(readUsername + " Login Accepted!");
-                            username = readUsername;
-                            System.out.println("Client: " + socket + " logged in with username " + readUsername);
-                            break;
-                        } else
-                            sOutput.writeObject("falseLogin");
                     }
+                    if (loginCheck) {
+                        sOutput.writeObject("trueLogin");
+                        //sOutput.writeObject(readUsername + " Login Accepted!");
+                        username = readUsername;
+                        System.out.println("Client: " + socket + " logged in with username " + readUsername);
+                        break;
+                    } else
+                        sOutput.writeObject("falseLogin");
+                }
 
 
             } catch (
@@ -375,30 +386,25 @@ public class Server {
                 e.printStackTrace();
             }
         }
-        public void sendMessage(ChatMessage msg) {
-            try {
-                sOutput.writeObject(msg);
-            }
-            catch(IOException e) {
-                display("Exception writing to server: " + e);
-            }
-        }
+
 
         // try to close everything
         private void close() {
             // try to close the connection
             try {
-                if(sOutput != null) sOutput.close();
+                if (sOutput != null) sOutput.close();
+            } catch (Exception e) {
+                //nothing to catch
             }
-            catch(Exception e) {}
             try {
-                if(sInput != null) sInput.close();
+                if (sInput != null) sInput.close();
+            } catch (Exception e) {
             }
-            catch(Exception e) {};
+
             try {
-                if(socket != null) socket.close();
+                if (socket != null) socket.close();
+            } catch (Exception e) {
             }
-            catch (Exception e) {}
         }
 
         /*
@@ -406,7 +412,7 @@ public class Server {
          */
         private boolean writeMsg(String msg) {
             // if Client is still connected send the message to it
-            if(!socket.isConnected()) {
+            if (!socket.isConnected()) {
                 close();
                 return false;
             }
@@ -415,20 +421,40 @@ public class Server {
                 sOutput.writeObject(msg);
             }
             // if an error occurs, do not abort just inform the user
-            catch(IOException e) {
+            catch (IOException e) {
                 display("Error sending message to " + username);
                 display(e.toString());
             }
             return true;
         }
 
+    }
+
+
+    //TODO better have interface also for Remove and Kick Clients
+    void loggedClients() {
+        if (clients.isEmpty()) {
+            serverGUI.appendEvent("No Current Online Users\n");
+            return;
+        }
+
+        for (int i = 0; i < clients.size(); ++i) {
+            ClientThread ct = clients.get(i);
+            serverGUI.appendEvent((i + 1) + ") " + ct.username + " since " + ct.date);
+        }
+
 
     }
 
-    void loggedClients() {
-        for(int i = 0; i < clients.size(); ++i) {
-            ClientThread ct = clients.get(i);
-            serverGUI.appendEvent((i+1) + ") " + ct.username + " since " + ct.date);
+    void onlineUsers() {
+
+
+        if (clients != null && clients.size()>=1) {
+            for (int i = 0; i < clients.size(); i++) {
+                ClientThread clientThread = clients.get(i);
+                serverGUI.initCompClientsList();
+                serverGUI.appendClients((i + 1) + ")" + clientThread.username);
+            }
         }
     }
 }

@@ -169,7 +169,7 @@ public class Client  {
      * > java Client
      * is equivalent to
      * > java Client Anonymous 1500 localhost
-     * are eqquivalent
+     * are equivalent
      *
      * In console mode, if an error occurs the program simply stops
      * when a GUI id used, the GUI is informed of the disconnection
@@ -229,7 +229,7 @@ public class Client  {
             }
             // message WhoIsIn
             else if(msg.equalsIgnoreCase("WHOISIN")) {
-                client.sendMessage(new ChatMessage(ChatMessage.WHOISIN, ""));
+                client.sendMessage(new ChatMessage(ChatMessage.OnlineUsers, ""));
             }
             else {				// default to ordinary message
                 client.sendMessage(new ChatMessage(ChatMessage.MESSAGE, msg));
@@ -241,7 +241,6 @@ public class Client  {
 
     /*
      * a class that waits for the message from the server and append them to the JTextArea
-     * if we have a GUI or simply System.out.println() it in console mode
      */
     class ListenFromServer extends Thread {
 
@@ -268,6 +267,9 @@ public class Client  {
                     } else if (msg.equalsIgnoreCase("falseRegister")) {
                         clientGUI.registerFailed();
                         display("Registration Failed!");
+                        socket.close();
+                    } else if (msg.equalsIgnoreCase("kicked")) {
+                        clientGUI.kicked();
                         socket.close();
                     } else {
                         clientGUI.append(msg);

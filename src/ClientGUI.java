@@ -13,25 +13,26 @@ import java.awt.event.WindowEvent;
 public class ClientGUI extends JFrame implements ActionListener {
 
     private static final long serialVersionUID = 1L;
+    //condition set for login process
+    private boolean loginFailed = false;
 
-    private boolean loginfailed = false;
-    // will first hold "Username:", later on "Enter message"
+    //label of the message
     JLabel label;
-
+    String username;
     //holds username
     private JTextField usernameField;
     //password field
     private JPasswordField passwordField;
 
-    // the messages textfield
+    // the messages Textfield
     private JTextField chatTextField;
     // to hold the server address an the port number
     private JTextField tfServer, tfPort;
     // to Logout and get the list of the users
-    private JButton login, logout, register, whoIsIn, send;
+    private JButton login, logout, register, clients, send;
     // for the chat room
     private JTextArea ta;
-    // if it is for connection
+    // connection status
     private boolean connected;
     // the Client object
     private Client client;
@@ -116,15 +117,15 @@ public class ClientGUI extends JFrame implements ActionListener {
         logout = new JButton("Logout");
         logout.addActionListener(this);
         logout.setEnabled(false);        // you have to login before being able to logout
-        whoIsIn = new JButton("Who is in");
-        whoIsIn.addActionListener(this);
-        whoIsIn.setEnabled(false);        // you have to login before being able to Who is in
+        clients = new JButton("Online Users");
+        clients.addActionListener(this);
+        clients.setEnabled(false);        // you have to login before being able to Who is in
 
         JPanel southPanel = new JPanel();
         southPanel.add(login);
         southPanel.add(register);
         southPanel.add(logout);
-        southPanel.add(whoIsIn);
+        southPanel.add(clients);
         add(southPanel, BorderLayout.SOUTH);
 
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -142,10 +143,11 @@ public class ClientGUI extends JFrame implements ActionListener {
 
     void loginAccepted() {
         JOptionPane.showMessageDialog(this, "Login Accepted");
+        this.setTitle("Chat Client" + " ("+username+")");
     }
 
     void loginFailed() {
-        loginfailed = true;
+        loginFailed = true;
         JOptionPane.showMessageDialog(this, "Login Failed\n Please try again!");
         login.setEnabled(true);
 
@@ -155,14 +157,18 @@ public class ClientGUI extends JFrame implements ActionListener {
     void registerSucceed() {
         JOptionPane.showMessageDialog(this, "Registration Successful");
         frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+        this.setTitle("Chat Client" + " ("+username+")");
     }
+
     void registerFailed() {
         JOptionPane.showMessageDialog(this, "Username already Taken!");
 
     }
-
-    void registerUser() {
-
+    void kicked() {
+        JOptionPane.showMessageDialog(this, "Admin has kicked you");
+        login.setEnabled(true);
+        this.setTitle("Chat Client");
+        connected = false;
     }
 
     // called by the GUI is the connection failed
@@ -171,7 +177,7 @@ public class ClientGUI extends JFrame implements ActionListener {
         login.setEnabled(true);
         register.setEnabled(true);
         logout.setEnabled(false);
-        whoIsIn.setEnabled(false);
+        clients.setEnabled(false);
         //label.setText("Enter your username below");
         //screenName.setText("");
         // reset port number and host name as a construction time
@@ -186,7 +192,6 @@ public class ClientGUI extends JFrame implements ActionListener {
     }
 
     void initComponentRegister() {
-
 
 
         l1 = new JLabel("Please Enter Username and Password below :");
@@ -222,32 +227,28 @@ public class ClientGUI extends JFrame implements ActionListener {
     /*
      * Button or JTextField clicked
      */
-    public void actionPerformed(ActionEvent e) {
-        Object choice = e.getSource();
+    public void actionPerformed(ActionEvent event) {
+        Object choice = event.getSource();
         // if it is the Logout button
         if (choice == logout) {
             client.sendMessage(new ChatMessage(ChatMessage.LOGOUT, ""));
+            this.setTitle("Chat Client");
             return;
         }
         // if it the who is in button
-        if (choice == whoIsIn) {
-            client.sendMessage(new ChatMessage(ChatMessage.WHOISIN, ""));
+        if (choice == clients) {
+            client.sendMessage(new ChatMessage(ChatMessage.OnlineUsers, ""));
             return;
         }
 
         if (choice == register) {
-
+            //load register frame
             initComponentRegister();
-
-
-
-
-
         }
         //TODO if message empty
 
-        // ok it is coming from the JTextField
-        if (connected && loginfailed == false) {
+        // this the only text coming from the ChatTextField
+        if (connected && !loginFailed) {
             // just have to send the message
             client.sendMessage(new ChatMessage(ChatMessage.MESSAGE, chatTextField.getText()));
             chatTextField.setText("");
@@ -255,23 +256,25 @@ public class ClientGUI extends JFrame implements ActionListener {
         }
         if (choice == login) {
             userChoices = "/Login";
+            loginRegisterServer(usernameField, passwordField);
 
-            loginRegisterServer(usernameField,passwordField);
         }
-
 
         if (choice == btn_register) {
-
             userChoices = "/register";
-            loginRegisterServer(usernameRegister,passwordFieldRegister);
-
+            loginRegisterServer(usernameRegister, passwordFieldRegister);
         }
-
     }
 
-    void loginRegisterServer(JTextField jUsername, JPasswordField jPass ) {
+    /**
+     * This method responsible for interacting with the server in login or register mode
+     * @param jUsername the Textfield of user name (register or login)
+     * @param jPass the Textfield of the password (register or login)
+     */
+    void loginRegisterServer(JTextField jUsername, JPasswordField jPass) {
         String username = jUsername.getText().trim();
         String password = String.valueOf(jPass.getPassword());
+        this.username = username;
         //TODO handling empty fields better later
         if (username.length() == 0)
             return;
@@ -297,11 +300,7 @@ public class ClientGUI extends JFrame implements ActionListener {
         // try creating a new Client with GUI
         client = new Client(server, port, username, password, this);
 
-
-
         // test if we can start the Client (open socket)
-
-
         if (!client.start()) {
             return;
         }
@@ -313,7 +312,7 @@ public class ClientGUI extends JFrame implements ActionListener {
         //label.setText("Enter your message below");
 
         connected = true;
-        loginfailed = false;
+        loginFailed = false;
 
 
         // disable login button
@@ -321,7 +320,7 @@ public class ClientGUI extends JFrame implements ActionListener {
         // enable the 2 buttons
         logout.setEnabled(true);
         register.setEnabled(false);
-        whoIsIn.setEnabled(true);
+        clients.setEnabled(true);
         // disable the Server and Port JTextField
         tfServer.setEditable(false);
         tfPort.setEditable(false);

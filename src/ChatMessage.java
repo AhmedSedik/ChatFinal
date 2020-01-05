@@ -14,7 +14,6 @@ public class ChatMessage implements Serializable {
     protected static final long serialVersionUID = 1112122200L;
 
     // The different types of message sent by the Client
-    // WHOISIN to receive the list of the users connected
     // MESSAGE an ordinary message
     // LOGOUT to disconnect from the Server
     static final int OnlineUsers = 0, MESSAGE = 1, LOGOUT = 2;

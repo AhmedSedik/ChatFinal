@@ -1,4 +1,6 @@
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.*;
 
@@ -30,7 +32,7 @@ public class ServerGUI extends JFrame implements ActionListener, WindowListener 
     private Server server;
     // connection status
     private boolean connected;
-
+    public int userIndex;
 
     // server constructor that receive the port to listen  for connection
     ServerGUI(int port) {
@@ -107,6 +109,7 @@ public class ServerGUI extends JFrame implements ActionListener, WindowListener 
 
     void appendClients(String str) {
         listModel.addElement(str);
+
     }
 
     // start or stop where clicked
@@ -184,6 +187,16 @@ public class ServerGUI extends JFrame implements ActionListener, WindowListener 
         frameOnlineUsers.setVisible(true);
 
         server.onlineUsers();
+
+        list1.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent event) {
+                if (!event.getValueIsAdjusting()) {
+                    userIndex = list1.getSelectedIndex()+1;
+                    System.out.println(userIndex);
+                }
+            }
+        });
         // making sure main frame is disabled while online list is opened
         frameOnlineUsers.addWindowListener(new WindowAdapter() {
             @Override

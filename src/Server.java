@@ -19,7 +19,7 @@ import java.util.Set;
  */
 public class Server {
     // a unique ID for each connection
-    public static int uniqueId;
+    public  int uniqueId;
     // an ArrayList to keep the list of the Client
     private ArrayList<ClientThread> clients;
     //ArrayList for the logged In uUsers
@@ -171,12 +171,14 @@ public class Server {
 
         for(int i = clients.size(); --i >= 0; ) {
             ClientThread clientThread = clients.get(i);
-            // try to write to the Client if it fails remove it from the list
-            if (clientThread.id == uniqueId) {
+
+            if (clientThread.id == serverGUI.userIndex) {
                 clients.remove(i);
+                serverGUI.userIndex--;
+                clientThread.id= --uniqueId;
                 clientThread.writeMsg("kicked");
                 display("Disconnected Client " + clientThread.username + " removed from list.");
-
+                onlineUsers.remove(clientThread.username);
             }
         }
     }
@@ -238,7 +240,7 @@ public class Server {
         ClientThread(Socket socket) {
 
 
-            users = new File("users.csv");
+             users = new File("users.csv");
             // a unique id
             id = ++uniqueId;
             this.socket = socket;
@@ -286,6 +288,7 @@ public class Server {
                 } catch (IOException e) {
                     // in case client quit while server running reading stream
                     display(username + " Exception reading Streams: " + e);
+                    id--;
                     break;
                 } catch (ClassNotFoundException e2) {
                     break;
@@ -302,6 +305,7 @@ public class Server {
                     case ChatMessage.LOGOUT:
                         broadcast(username + " disconnected");
                         display(username + " disconnected");
+                        onlineUsers.remove(username);
                         keepGoing = false;
                         break;
                     case ChatMessage.OnlineUsers:
@@ -402,6 +406,7 @@ public class Server {
                         username = readUsername;
                         //adding user to ArrayList
                         onlineUsers.add(username);
+                        serverGUI.userIndex++;
                         System.out.println("Client: " + socket + " logged in with username " + readUsername);
                         break;
                     } else
@@ -482,6 +487,7 @@ public class Server {
                 ClientThread clientThread = clients.get(i);
 
                 serverGUI.appendClients((i + 1) + ")" + clientThread.username);
+
             }
         }
     }

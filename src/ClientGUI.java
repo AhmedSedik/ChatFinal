@@ -171,6 +171,14 @@ public class ClientGUI extends JFrame implements ActionListener {
         connected = false;
     }
 
+    void userLoggedIn() {
+        loginFailed = true;
+        JOptionPane.showMessageDialog(this, "User Already Logged In!\n Please try again!");
+        login.setEnabled(true);
+
+        connected = false;
+    }
+
     // called by the GUI is the connection failed
     // we reset our buttons, label, textfield
     void connectionFailed() {

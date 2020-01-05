@@ -271,6 +271,9 @@ public class Client  {
                     } else if (msg.equalsIgnoreCase("kicked")) {
                         clientGUI.kicked();
                         socket.close();
+                    }  else if (msg.equalsIgnoreCase("userlogged")) {
+                        clientGUI.userLoggedIn();
+                        socket.close();
                     } else {
                         clientGUI.append(msg);
                     }

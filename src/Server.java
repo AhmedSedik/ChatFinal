@@ -8,6 +8,8 @@ import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author zozzy on 31.12.19
@@ -20,6 +22,8 @@ public class Server {
     public static int uniqueId;
     // an ArrayList to keep the list of the Client
     private ArrayList<ClientThread> clients;
+    //ArrayList for the logged In uUsers
+    private ArrayList<String> onlineUsers;
     // if I am in a GUI
     private ServerGUI serverGUI;
     // to display time
@@ -51,6 +55,8 @@ public class Server {
         simpleDateFormat = new SimpleDateFormat("HH:mm:ss");
         // ArrayList for the Client list
         clients = new ArrayList<ClientThread>();
+        //could be also arraylist
+        onlineUsers = new ArrayList<>();
     }
 
     public void start() {
@@ -70,7 +76,8 @@ public class Server {
                 if (!keepGoing)
                     break;
                 ClientThread thread = new ClientThread(socket);  // make a thread of it
-                clients.add(thread);                                    // save it in the ArrayList
+                clients.add(thread);                            // save it in the ArrayList
+
                 thread.start();
             }
             // I was asked to stop
@@ -160,14 +167,16 @@ public class Server {
         }
     }
 
-    synchronized void kickClient(int id) {
-        for (int i = clients.size(); --i >= 0; ) {
+    synchronized void kickClient() {
+
+        for(int i = clients.size(); --i >= 0; ) {
             ClientThread clientThread = clients.get(i);
             // try to write to the Client if it fails remove it from the list
-            if (clientThread.id == id) {
+            if (clientThread.id == uniqueId) {
                 clients.remove(i);
                 clientThread.writeMsg("kicked");
                 display("Disconnected Client " + clientThread.username + " removed from list.");
+
             }
         }
     }
@@ -215,9 +224,12 @@ public class Server {
         // my unique id (used in disconnecting)
         int id;
         // the Username of the Client
-        String username;
-
+        String username ="";
+        //instance of the helper Class
         ChatMessage message;
+        //login status
+        boolean loggedIn;
+
 
         String date;
 
@@ -366,14 +378,30 @@ public class Server {
 
                     while ((((nextRecord = reader.readNext())) != null) && !loginCheck) {
                         if (nextRecord[0].equals(readUsername)) {
-                            if (nextRecord[1].equals(readPassword))
-                                loginCheck = true;
+                            if (nextRecord[1].equals(readPassword)) {
+                                for (int i = 0; i < onlineUsers.size(); ++i) {
+                                    username = onlineUsers.get(i);
+                                    // found it
+                                    if (username.equals(readUsername)) {
+                                        System.out.println("doubled");
+                                        sOutput.writeObject("userlogged");
+                                    }
+                                }
+                                    loginCheck = true;
+
+                            }
                         }
                     }
                     if (loginCheck) {
+
+
+
                         sOutput.writeObject("trueLogin");
+
                         //sOutput.writeObject(readUsername + " Login Accepted!");
                         username = readUsername;
+                        //adding user to ArrayList
+                        onlineUsers.add(username);
                         System.out.println("Client: " + socket + " logged in with username " + readUsername);
                         break;
                     } else
@@ -452,7 +480,7 @@ public class Server {
         if (clients != null && clients.size()>=1) {
             for (int i = 0; i < clients.size(); i++) {
                 ClientThread clientThread = clients.get(i);
-                serverGUI.initCompClientsList();
+
                 serverGUI.appendClients((i + 1) + ")" + clientThread.username);
             }
         }

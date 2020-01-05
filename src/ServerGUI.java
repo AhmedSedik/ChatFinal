@@ -140,10 +140,10 @@ public class ServerGUI extends JFrame implements ActionListener, WindowListener 
         } else if (choice == btn_Clients) {
 
             server.loggedClients();
-
-            server.onlineUsers();
+            initCompClientsList();
+            //server.onlineUsers();
         } else if (choice == btn_kick_user) {
-            server.kickClient(Server.uniqueId);
+            server.kickClient();
 
         } else if (choice == btn_close) {
             frameOnlineUsers.dispose();
@@ -183,7 +183,7 @@ public class ServerGUI extends JFrame implements ActionListener, WindowListener 
         frameOnlineUsers.setLayout(null);
         frameOnlineUsers.setVisible(true);
 
-
+        server.onlineUsers();
         // making sure main frame is disabled while online list is opened
         frameOnlineUsers.addWindowListener(new WindowAdapter() {
             @Override

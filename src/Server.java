@@ -19,7 +19,7 @@ import java.util.Set;
  */
 public class Server {
     // a unique ID for each connection
-    public  int uniqueId;
+    public int uniqueId;
     // an ArrayList to keep the list of the Client
     private ArrayList<ClientThread> clients;
     //ArrayList for the logged In uUsers
@@ -55,7 +55,7 @@ public class Server {
         simpleDateFormat = new SimpleDateFormat("HH:mm:ss");
         // ArrayList for the Client list
         clients = new ArrayList<ClientThread>();
-        //could be also arraylist
+        //could be also ArrayList
         onlineUsers = new ArrayList<>();
     }
 
@@ -169,13 +169,18 @@ public class Server {
 
     synchronized void kickClient() {
 
-        for(int i = clients.size(); --i >= 0; ) {
+        for (int i = clients.size(); --i >= 0; ) {
             ClientThread clientThread = clients.get(i);
 
             if (clientThread.id == serverGUI.userIndex) {
-                clients.remove(i);
-                serverGUI.userIndex--;
-                clientThread.id= --uniqueId;
+                //clients.remove(i);//ArrayList size not correct
+                //TODO fix user ID incrementation Done
+                clientThread.id = --uniqueId;
+                //TODO fix user Index (index is at some point wrong)
+
+                if (serverGUI.userIndex >= 1) {
+                    serverGUI.userIndex=-serverGUI.userIndex;
+                }
                 clientThread.writeMsg("kicked");
                 display("Disconnected Client " + clientThread.username + " removed from list.");
                 onlineUsers.remove(clientThread.username);
@@ -226,7 +231,7 @@ public class Server {
         // my unique id (used in disconnecting)
         int id;
         // the Username of the Client
-        String username ="";
+        String username = "";
         //instance of the helper Class
         ChatMessage message;
         //login status
@@ -240,7 +245,7 @@ public class Server {
         ClientThread(Socket socket) {
 
 
-             users = new File("users.csv");
+            users = new File("users.csv");
             // a unique id
             id = ++uniqueId;
             this.socket = socket;
@@ -288,12 +293,16 @@ public class Server {
                 } catch (IOException e) {
                     // in case client quit while server running reading stream
                     display(username + " Exception reading Streams: " + e);
-                    id--;
+                    //user disconnected log him off
+
+
+                    onlineUsers.remove(username);
+                    id--;//TODO Fix
                     break;
                 } catch (ClassNotFoundException e2) {
                     break;
                 }
-                // the messaage part of the ChatMessage
+                // the message part of the ChatMessage
                 String message = this.message.getMessage();
 
                 // Switch on the type of message receive
@@ -366,7 +375,7 @@ public class Server {
             }
         }
 
-        //TODO if user already logged in
+        //TODO if user already logged in DONE
         public void userLogin() throws IOException {
 
             try {
@@ -383,21 +392,20 @@ public class Server {
                     while ((((nextRecord = reader.readNext())) != null) && !loginCheck) {
                         if (nextRecord[0].equals(readUsername)) {
                             if (nextRecord[1].equals(readPassword)) {
-                                for (int i = 0; i < onlineUsers.size(); ++i) {
-                                    username = onlineUsers.get(i);
+                                for (String onlineUser : onlineUsers) {
+                                    username = onlineUser;
                                     // found it
                                     if (username.equals(readUsername)) {
                                         System.out.println("doubled");
                                         sOutput.writeObject("userlogged");
                                     }
                                 }
-                                    loginCheck = true;
+                                loginCheck = true;
 
                             }
                         }
                     }
                     if (loginCheck) {
-
 
 
                         sOutput.writeObject("trueLogin");
@@ -480,12 +488,9 @@ public class Server {
     }
 
     void onlineUsers() {
-
-
-        if (clients != null && clients.size()>=1) {
+        if (clients != null && clients.size() >= 1) {
             for (int i = 0; i < clients.size(); i++) {
                 ClientThread clientThread = clients.get(i);
-
                 serverGUI.appendClients((i + 1) + ")" + clientThread.username);
 
             }

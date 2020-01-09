@@ -139,7 +139,17 @@ public class ServerGUI extends JFrame implements ActionListener, WindowListener 
             new ServerRunning().start();
             stopStart.setText("Stop");
             tPortNumber.setEditable(false);
-            chatTextField.addActionListener(this);
+            chatTextField.addKeyListener(new KeyAdapter() {
+                @Override
+                public void keyPressed(KeyEvent e) {
+                    if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                        server.broadcast("Admin: " + chatTextField.getText());
+                        chatTextField.setText("");
+                    }
+
+
+                }
+            });
         } else if (choice == btn_Clients) {
 
             server.loggedClients();
@@ -153,8 +163,6 @@ public class ServerGUI extends JFrame implements ActionListener, WindowListener 
             setEnabled(true);
         }
         if (server.connected) {
-            server.broadcast("Admin: " + chatTextField.getText());
-            chatTextField.setText("");
 
         }
 

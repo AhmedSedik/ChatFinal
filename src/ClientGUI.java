@@ -31,7 +31,7 @@ public class ClientGUI extends JFrame implements ActionListener {
     // to Logout and get the list of the users
     private JButton login, logout, register, clients, send;
     // for the chat room
-    private JTextArea ta;
+    private JTextArea textArea;
     // connection status
     private boolean connected;
     // the Client object
@@ -100,11 +100,11 @@ public class ClientGUI extends JFrame implements ActionListener {
 
 
         // The CenterPanel which is the chat room
-        ta = new JTextArea("Welcome to the Chat room\n", 80, 80);
-        this.ta.setSize(400, 400);
+        textArea = new JTextArea("Welcome to the Chat room\n", 80, 80);
+        this.textArea.setSize(400, 400);
         JPanel centerPanel = new JPanel(new GridLayout(1, 1, 1, 3));
-        centerPanel.add(new JScrollPane(ta));
-        ta.setEditable(false);
+        centerPanel.add(new JScrollPane(textArea));
+        textArea.setEditable(false);
 
         add(centerPanel, BorderLayout.CENTER);
 
@@ -129,21 +129,24 @@ public class ClientGUI extends JFrame implements ActionListener {
         add(southPanel, BorderLayout.SOUTH);
 
         setDefaultCloseOperation(EXIT_ON_CLOSE);
+
         setSize(600, 600);
         setVisible(true);
-        chatTextField.requestFocus();
+        usernameField.requestFocus();
+
 
     }
 
     // called by the Client to append text in the TextArea
     void append(String str) {
-        ta.append(str);
+        textArea.append(str);
         //ta.setCaretPosition(ta.getText().length() - 1);
     }
 
     void loginAccepted() {
         JOptionPane.showMessageDialog(this, "Login Accepted");
         this.setTitle("Chat Client" + " ("+username+")");
+        chatTextField.requestFocus();
     }
 
     void loginFailed() {
@@ -158,6 +161,7 @@ public class ClientGUI extends JFrame implements ActionListener {
         JOptionPane.showMessageDialog(this, "Registration Successful");
         frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
         this.setTitle("Chat Client" + " ("+username+")");
+        chatTextField.requestFocus();
     }
 
     void registerFailed() {
@@ -184,7 +188,7 @@ public class ClientGUI extends JFrame implements ActionListener {
     void connectionFailed() {
         login.setEnabled(true);
         register.setEnabled(true);
-        logout.setEnabled(false);
+        //logout.setEnabled(false);
         clients.setEnabled(false);
         //label.setText("Enter your username below");
         //screenName.setText("");
@@ -197,6 +201,8 @@ public class ClientGUI extends JFrame implements ActionListener {
         // don't react to a <CR> after the username
         chatTextField.removeActionListener(this);
         connected = false;
+
+        JOptionPane.showMessageDialog(this, "No Connection to Server\n");
     }
 
     void initComponentRegister() {
@@ -226,6 +232,8 @@ public class ClientGUI extends JFrame implements ActionListener {
         frame.add(l3);
         frame.add(passwordFieldRegister);
         frame.add(btn_register);
+
+        frame.getRootPane().setDefaultButton(btn_register);
 
         frame.setSize(600, 400);
         frame.setLayout(null);
@@ -291,8 +299,11 @@ public class ClientGUI extends JFrame implements ActionListener {
 
         // empty serverAddress ignore it
         String server = tfServer.getText().trim();
-        if (server.length() == 0)
+        if (server.length() == 0) {
+
             return;
+        }
+
 
         // empty or invalid port numer, ignore it
         String portNumber = tfPort.getText().trim();

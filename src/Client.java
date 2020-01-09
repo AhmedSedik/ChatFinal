@@ -61,6 +61,7 @@ public class Client  {
         }
         // if it failed not much I can so
         catch(Exception ec) {
+            clientGUI.connectionFailed();
             display("Error connecting to server:" + ec);
             return false;
         }

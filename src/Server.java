@@ -28,7 +28,7 @@ public class Server {
     private ServerGUI serverGUI;
     // to display time
     private SimpleDateFormat simpleDateFormat;
-    // the port number to listen for connection
+    // the port number to listen forx` connection
     private int port;
     // the boolean that will be turned off to stop the server
     public boolean keepGoing;

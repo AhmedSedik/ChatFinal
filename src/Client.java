@@ -125,7 +125,7 @@ public class Client  {
         }
     }
 
-    void sendChoice(String msg) {
+    private void sendChoice(String msg) {
         try {
             sOutput.writeObject(msg);
         }
@@ -275,6 +275,11 @@ public class Client  {
                     }  else if (msg.equalsIgnoreCase("userlogged")) {
                         clientGUI.userLoggedIn();
                         socket.close();
+                    } else if (msg.startsWith("online")) {
+                        clientGUI.appendClients(msg.substring(6));
+
+                    } else if (msg.startsWith("play")) {
+                        clientGUI.playRequest(msg);
                     } else {
                         clientGUI.append(msg);
                     }

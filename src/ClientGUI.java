@@ -3,9 +3,12 @@
  */
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 /* * The Client with its GUI
@@ -29,7 +32,7 @@ public class ClientGUI extends JFrame implements ActionListener {
     // to hold the server address an the port number
     private JTextField tfServer, tfPort;
     // to Logout and get the list of the users
-    private JButton login, logout, register, clients, send;
+    private JButton login, logout, register, btn_clients, send;
     // for the chat room
     private JTextArea textArea;
     // connection status
@@ -41,7 +44,7 @@ public class ClientGUI extends JFrame implements ActionListener {
     private String defaultHost;
 
     String userChoices = "";
-
+    public int userIndex;
     //Registration Components
     JFrame frame = new JFrame("Registration");
     JLabel l1, l2, l3;
@@ -49,6 +52,12 @@ public class ClientGUI extends JFrame implements ActionListener {
     JButton btn_register;
     JPasswordField passwordFieldRegister;
 
+
+    JFrame frameOnlineUsers;
+    private JList<String> list1;
+    private DefaultListModel<String> listModel;
+    private JButton btn_play;
+    private JButton btn_close;
     // Constructor connection receiving a socket number
     ClientGUI(String host, int port) {
 
@@ -117,15 +126,15 @@ public class ClientGUI extends JFrame implements ActionListener {
         logout = new JButton("Logout");
         logout.addActionListener(this);
         logout.setEnabled(false);        // you have to login before being able to logout
-        clients = new JButton("Online Users");
-        clients.addActionListener(this);
-        clients.setEnabled(false);        // you have to login before being able to Who is in
+        btn_clients = new JButton("Online Users");
+        btn_clients.addActionListener(this);
+        btn_clients.setEnabled(false);        // you have to login before being able to Who is in
 
         JPanel southPanel = new JPanel();
         southPanel.add(login);
         southPanel.add(register);
         southPanel.add(logout);
-        southPanel.add(clients);
+        southPanel.add(btn_clients);
         add(southPanel, BorderLayout.SOUTH);
 
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -141,6 +150,14 @@ public class ClientGUI extends JFrame implements ActionListener {
     void append(String str) {
         textArea.append(str);
         //ta.setCaretPosition(ta.getText().length() - 1);
+    }
+    void appendClients(String str) {
+        listModel.addElement(str);
+
+    }
+
+    void playRequest(String playner_name) {
+        JOptionPane.showMessageDialog(this, "player" + playner_name + "Wanna play?!");
     }
 
     void loginAccepted() {
@@ -189,7 +206,7 @@ public class ClientGUI extends JFrame implements ActionListener {
         login.setEnabled(true);
         register.setEnabled(true);
         //logout.setEnabled(false);
-        clients.setEnabled(false);
+        btn_clients.setEnabled(false);
         //label.setText("Enter your username below");
         //screenName.setText("");
         // reset port number and host name as a construction time
@@ -240,6 +257,57 @@ public class ClientGUI extends JFrame implements ActionListener {
         frame.setVisible(true);
     }
 
+    void initCompClientsList() {
+
+        frameOnlineUsers = new JFrame();
+        final JLabel label = new JLabel("Online Users");
+        label.setSize(500, 100);
+        btn_play = new JButton("Play");
+        btn_play.setBounds(200, 150, 80, 30);
+        btn_play.addActionListener(this);
+        btn_close = new JButton("close");
+        btn_close.setBounds(200,180,80,30);
+        btn_close.addActionListener(this);
+        listModel = new DefaultListModel<>();
+
+
+        list1 = new JList<>(listModel);
+        list1.setBounds(100, 100, 100, 200);
+
+        frameOnlineUsers.add(list1);
+        frameOnlineUsers.add(btn_play);
+        frameOnlineUsers.add(btn_close);
+        frameOnlineUsers.add(label);
+        frameOnlineUsers.setSize(450, 450);
+        frameOnlineUsers.setLayout(null);
+        frameOnlineUsers.setVisible(true);
+
+        client.sendMessage(new ChatMessage(ChatMessage.OnlineUsers, ""));
+
+        list1.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent event) {
+                if (!event.getValueIsAdjusting()) {
+                    userIndex = list1.getSelectedIndex()+1;
+                    System.out.println(userIndex);
+                }
+            }
+        });
+        // making sure main frame is disabled while online list is opened
+        frameOnlineUsers.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                super.windowClosing(e);
+                setEnabled(true);
+            }
+
+            @Override
+            public void windowActivated(WindowEvent e) {
+                super.windowActivated(e);
+                setEnabled(false);
+            }
+        });
+    }
     /*
      * Button or JTextField clicked
      */
@@ -252,9 +320,17 @@ public class ClientGUI extends JFrame implements ActionListener {
             return;
         }
         // if it the who is in button
-        if (choice == clients) {
-            client.sendMessage(new ChatMessage(ChatMessage.OnlineUsers, ""));
+        if (choice == btn_clients) {
+            initCompClientsList();
             return;
+        }
+        if (choice == btn_play) {
+            String username = list1.getSelectedValue();
+            System.out.println(username);
+            ChatMessage message = new ChatMessage();
+            message.setMessage(username);
+           client.sendMessage(new ChatMessage(ChatMessage.PLAY_REQUEST,""));
+
         }
 
         if (choice == register) {
@@ -273,13 +349,13 @@ public class ClientGUI extends JFrame implements ActionListener {
         if (choice == login) {
             userChoices = "/Login";
             loginRegisterServer(usernameField, passwordField);
-
         }
 
         if (choice == btn_register) {
             userChoices = "/register";
             loginRegisterServer(usernameRegister, passwordFieldRegister);
         }
+
     }
 
     /**
@@ -339,7 +415,7 @@ public class ClientGUI extends JFrame implements ActionListener {
         // enable the 2 buttons
         logout.setEnabled(true);
         register.setEnabled(false);
-        clients.setEnabled(true);
+        btn_clients.setEnabled(true);
         // disable the Server and Port JTextField
         tfServer.setEditable(false);
         tfPort.setEditable(false);

@@ -11,6 +11,7 @@ import java.io.Serializable;
  */
 public class ChatMessage implements Serializable {
 
+    public static final int PLAY_REQUEST = 3;
     protected static final long serialVersionUID = 1112122200L;
 
     // The different types of message sent by the Client
@@ -26,11 +27,19 @@ public class ChatMessage implements Serializable {
         this.message = message;
     }
 
+    ChatMessage() {
+
+    }
+
     // getters
     int getType() {
         return type;
     }
     String getMessage() {
         return message;
+    }
+
+    void setMessage(String msg) {
+            this.message = msg;
     }
 }

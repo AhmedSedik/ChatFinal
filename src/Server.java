@@ -179,7 +179,7 @@ public class Server {
                 //TODO fix user Index (index is at some point wrong)
 
                 if (serverGUI.userIndex >= 1) {
-                    serverGUI.userIndex=-serverGUI.userIndex;
+                    serverGUI.userIndex = -serverGUI.userIndex;
                 }
                 clientThread.writeMsg("kicked");
                 display("Disconnected Client " + clientThread.username + " removed from list.");
@@ -304,7 +304,7 @@ public class Server {
                 }
                 // the message part of the ChatMessage
                 String message = this.message.getMessage();
-
+                ChatMessage chatMessage = new ChatMessage();
                 // Switch on the type of message receive
                 switch (this.message.getType()) {
 
@@ -318,13 +318,17 @@ public class Server {
                         keepGoing = false;
                         break;
                     case ChatMessage.OnlineUsers:
-                        writeMsg("List of the users connected at " + simpleDateFormat.format(new Date()) + "\n");
                         // scan al the users connected
-                        for (int i = 0; i < clients.size(); ++i) {
-                            ClientThread ct = clients.get(i);
-                            writeMsg((i + 1) + ") " + ct.username + " since " + ct.date);
+                        if (clients != null && clients.size() >= 1) {
+                            for (int i = 0; i < clients.size(); i++) {
+                                ClientThread ct = clients.get(i);
+                                writeMsg("online" + ct.username);
+                            }
                         }
                         break;
+                    case ChatMessage.PLAY_REQUEST:
+                        writeMsg("play");
+                        writeMsg1(chatMessage.getMessage());
                 }
             }
             // remove myself from the arrayList containing the list of the
@@ -460,6 +464,28 @@ public class Server {
             // write the message to the stream
             try {
                 sOutput.writeObject(msg);
+            }
+            // if an error occurs, do not abort just inform the user
+            catch (IOException e) {
+                display("Error sending message to " + username);
+                display(e.toString());
+            }
+            return true;
+        }
+
+        private boolean writeMsg1(String msg) {
+            // if Client is still connected send the message to it
+            if (!socket.isConnected()) {
+                close();
+                return false;
+            }
+            // write the message to the stream
+            try {
+                ObjectOutputStream out = clients.get(id).sOutput;
+
+                out.writeObject(msg);
+                out.flush();
+
             }
             // if an error occurs, do not abort just inform the user
             catch (IOException e) {

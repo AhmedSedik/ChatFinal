@@ -172,7 +172,7 @@ public class ClientGUI extends JFrame implements ActionListener {
     void playResponse(String response){
         String[] parts = response.split("-");
         String senderUsername = parts[1];
-        JOptionPane.showMessageDialog(this, response);
+        startGame();
     }
 
     void loginAccepted() {
@@ -369,6 +369,28 @@ public class ClientGUI extends JFrame implements ActionListener {
         }
 
     }
+
+    public void startGame() {
+        // Create a frame
+        JFrame frame = new JFrame("Connect Four");
+
+        // Create an instance of the applet
+        connectfourclient applet = new connectfourclient();
+
+        // Add the applet instance to the frame
+        frame.getContentPane().add(applet, BorderLayout.CENTER);
+
+        // Invoke init() and start()
+        applet.init();
+        applet.start();
+
+        // Display the frame
+        frame.setSize(640, 600);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setVisible(true);
+
+    }
+
 
     /**
      * This method responsible for interacting with the server in login or register mode

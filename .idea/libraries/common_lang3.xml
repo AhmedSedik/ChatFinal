@@ -2,6 +2,7 @@
   <library name="common-lang3">
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/../Connect-Four-Server-and-Client-side-master/common-lang3.jar!/" />
+      <root url="jar://$USER_HOME$/Downloads/commons-lang3-3.9.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

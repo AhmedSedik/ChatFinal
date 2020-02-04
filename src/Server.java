@@ -8,8 +8,6 @@ import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @author zozzy on 31.12.19
@@ -327,8 +325,8 @@ public class Server {
                         }
                         break;
                     case ChatMessage.PLAY_REQUEST:
-                        writeMsg("play");
-                        writeMsg1(chatMessage.getMessage());
+                        String username = this.message.getMessage();
+                        writeMsgToUser("playRequest", username);
                 }
             }
             // remove myself from the arrayList containing the list of the
@@ -473,7 +471,7 @@ public class Server {
             return true;
         }
 
-        private boolean writeMsg1(String msg) {
+        private boolean writeMsgToUser(String msg, String username) {
             // if Client is still connected send the message to it
             if (!socket.isConnected()) {
                 close();
@@ -481,11 +479,10 @@ public class Server {
             }
             // write the message to the stream
             try {
-                ObjectOutputStream out = clients.get(id).sOutput;
-
+                ClientThread clientThread = findByUsername(username);
+                ObjectOutputStream out = clientThread.sOutput;
                 out.writeObject(msg);
                 out.flush();
-
             }
             // if an error occurs, do not abort just inform the user
             catch (IOException e) {
@@ -511,6 +508,14 @@ public class Server {
         }
 
 
+    }
+
+    ClientThread findByUsername(String username){
+        for(ClientThread clientThread :clients){
+            if (clientThread.username.equals(username))
+                return clientThread;
+        }
+        return null;
     }
 
     void onlineUsers() {

@@ -326,10 +326,7 @@ public class ClientGUI extends JFrame implements ActionListener {
         }
         if (choice == btn_play) {
             String username = list1.getSelectedValue();
-            System.out.println(username);
-            ChatMessage message = new ChatMessage();
-            message.setMessage(username);
-           client.sendMessage(new ChatMessage(ChatMessage.PLAY_REQUEST,""));
+              client.sendMessage(new ChatMessage(ChatMessage.PLAY_REQUEST,username));
 
         }
 

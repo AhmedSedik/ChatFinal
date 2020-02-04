@@ -280,6 +280,10 @@ public class Client  {
 
                     } else if (msg.startsWith("play")) {
                         clientGUI.playRequest(msg);
+                    } else if (msg.startsWith("yes")) {
+                        clientGUI.playResponse(msg);
+                    } else if (msg.startsWith("no")) {
+                        clientGUI.playResponse(msg);
                     } else {
                         clientGUI.append(msg);
                     }

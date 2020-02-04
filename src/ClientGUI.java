@@ -162,11 +162,17 @@ public class ClientGUI extends JFrame implements ActionListener {
         int result = JOptionPane.showConfirmDialog(this,
                 "player " + senderUsername + " has sent you a request to play Connect Four.","Game Request", JOptionPane.YES_NO_OPTION);
         if(result == JOptionPane.YES_OPTION) {
-
+            client.sendMessage(new ChatMessage(ChatMessage.REPSONE_PLAY_REQUEST, "yes"+"-"+senderUsername,username));
         }
         else{
-
+            client.sendMessage(new ChatMessage(ChatMessage.REPSONE_PLAY_REQUEST, "no"+"-"+senderUsername,username));
         }
+    }
+
+    void playResponse(String response){
+        String[] parts = response.split("-");
+        String senderUsername = parts[1];
+        JOptionPane.showMessageDialog(this, response);
     }
 
     void loginAccepted() {

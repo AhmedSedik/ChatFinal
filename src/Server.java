@@ -328,6 +328,17 @@ public class Server {
                         String selectedUsername = this.message.getMessage();
                         String sender = this.message.getSender();
                         writeMsgToUser("playRequest" + "-" + sender, selectedUsername);
+                        break;
+
+                    case ChatMessage.REPSONE_PLAY_REQUEST:
+                        String msg = this.message.getMessage();
+                        String[] msgSplit = msg.split("-");
+                        String response = msgSplit[0];
+                        String userTO = msgSplit[1];
+                        String userFROM = this.message.getSender();
+                        writeMsgToUser(response + "-" +userFROM, userTO);
+                        break;
+
                 }
             }
             // remove myself from the arrayList containing the list of the

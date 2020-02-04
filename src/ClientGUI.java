@@ -156,8 +156,17 @@ public class ClientGUI extends JFrame implements ActionListener {
 
     }
 
-    void playRequest(String playner_name) {
-        JOptionPane.showMessageDialog(this, "player" + playner_name + "Wanna play?!");
+    void playRequest(String request) {
+        String[] parts = request.split("-");
+        String senderUsername = parts[1];
+        int result = JOptionPane.showConfirmDialog(this,
+                "player " + senderUsername + " has sent you a request to play Connect Four.","Game Request", JOptionPane.YES_NO_OPTION);
+        if(result == JOptionPane.YES_OPTION) {
+
+        }
+        else{
+
+        }
     }
 
     void loginAccepted() {
@@ -282,7 +291,7 @@ public class ClientGUI extends JFrame implements ActionListener {
         frameOnlineUsers.setLayout(null);
         frameOnlineUsers.setVisible(true);
 
-        client.sendMessage(new ChatMessage(ChatMessage.OnlineUsers, ""));
+        client.sendMessage(new ChatMessage(ChatMessage.OnlineUsers, "",""));
 
         list1.addListSelectionListener(new ListSelectionListener() {
             @Override
@@ -315,7 +324,7 @@ public class ClientGUI extends JFrame implements ActionListener {
         Object choice = event.getSource();
         // if it is the Logout button
         if (choice == logout) {
-            client.sendMessage(new ChatMessage(ChatMessage.LOGOUT, ""));
+            client.sendMessage(new ChatMessage(ChatMessage.LOGOUT, "",""));
             this.setTitle("Chat Client");
             return;
         }
@@ -325,8 +334,8 @@ public class ClientGUI extends JFrame implements ActionListener {
             return;
         }
         if (choice == btn_play) {
-            String username = list1.getSelectedValue();
-              client.sendMessage(new ChatMessage(ChatMessage.PLAY_REQUEST,username));
+            String selectedUser = list1.getSelectedValue();
+              client.sendMessage(new ChatMessage(ChatMessage.PLAY_REQUEST,selectedUser,username));
 
         }
 
@@ -339,7 +348,7 @@ public class ClientGUI extends JFrame implements ActionListener {
         // this the only text coming from the ChatTextField
         if (connected && !loginFailed) {
             // just have to send the message
-            client.sendMessage(new ChatMessage(ChatMessage.MESSAGE, chatTextField.getText()));
+            client.sendMessage(new ChatMessage(ChatMessage.MESSAGE, chatTextField.getText(),""));
             chatTextField.setText("");
             return;
         }

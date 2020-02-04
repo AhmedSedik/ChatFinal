@@ -325,8 +325,9 @@ public class Server {
                         }
                         break;
                     case ChatMessage.PLAY_REQUEST:
-                        String username = this.message.getMessage();
-                        writeMsgToUser("playRequest", username);
+                        String selectedUsername = this.message.getMessage();
+                        String sender = this.message.getSender();
+                        writeMsgToUser("playRequest" + "-" + sender, selectedUsername);
                 }
             }
             // remove myself from the arrayList containing the list of the

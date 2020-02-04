@@ -23,10 +23,21 @@ public class ChatMessage implements Serializable {
 
     private String message;
 
+    public String getSender() {
+        return sender;
+    }
+
+    public void setSender(String sender) {
+        this.sender = sender;
+    }
+
+    private String sender;
+
     // constructor
-    ChatMessage(int type, String message) {
+    ChatMessage(int type, String message, String sender) {
         this.type = type;
         this.message = message;
+        this.sender = sender;
     }
 
     ChatMessage() {

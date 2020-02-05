@@ -162,7 +162,7 @@ public class ClientGUI extends JFrame implements ActionListener {
         int result = JOptionPane.showConfirmDialog(this,
                 "player " + senderUsername + " has sent you a request to play Connect Four.","Game Request", JOptionPane.YES_NO_OPTION);
         if(result == JOptionPane.YES_OPTION) {
-            client.sendMessage(new ChatMessage(ChatMessage.REPSONE_PLAY_REQUEST, "yes"+"-"+senderUsername,username));
+            client.sendMessage(new ChatMessage(ChatMessage.REPSONE_PLAY_REQUEST, "yes"+ "-" + senderUsername, username));
         }
         else{
             client.sendMessage(new ChatMessage(ChatMessage.REPSONE_PLAY_REQUEST, "no"+"-"+senderUsername,username));
@@ -172,7 +172,7 @@ public class ClientGUI extends JFrame implements ActionListener {
     void playResponse(String response){
         String[] parts = response.split("-");
         String senderUsername = parts[1];
-        startGame();
+        client.sendMessage(new ChatMessage(ChatMessage.PLAY, senderUsername, username));
     }
 
     void loginAccepted() {
@@ -369,28 +369,6 @@ public class ClientGUI extends JFrame implements ActionListener {
         }
 
     }
-
-    public void startGame() {
-        // Create a frame
-        JFrame frame = new JFrame("Connect Four");
-
-        // Create an instance of the applet
-        connectfourclient applet = new connectfourclient();
-
-        // Add the applet instance to the frame
-        frame.getContentPane().add(applet, BorderLayout.CENTER);
-
-        // Invoke init() and start()
-        applet.init();
-        applet.start();
-
-        // Display the frame
-        frame.setSize(640, 600);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setVisible(true);
-
-    }
-
 
     /**
      * This method responsible for interacting with the server in login or register mode

@@ -43,7 +43,7 @@ public class connectfourclient extends JApplet
     private boolean isStandAlone = false;
 
     // Host name or ip
-    private String host = "localhost";
+    public String host = "localhost";
 
     /** Initialize UI */
     public void init() {
@@ -73,11 +73,7 @@ public class connectfourclient extends JApplet
     private void connectToServer() {
         try {
             // Create a socket to connect to the server
-            Socket socket;
-            if (isStandAlone)
-                socket = new Socket(host, 1234);
-            else
-                socket = new Socket(getCodeBase().getHost(), 1234);
+            Socket socket = new Socket("localhost",5555);
 
             // Create an input stream to receive data from the server
             fromServer = new DataInputStream(socket.getInputStream());
@@ -145,7 +141,6 @@ public class connectfourclient extends JApplet
         while (waiting) {
             Thread.sleep(100);
         }
-
         waiting = true;
     }
 
@@ -275,30 +270,5 @@ public class connectfourclient extends JApplet
                 }
             }
         }
-    }
-
-    /** This main method enables the applet to run as an application */
-    public static void main(String[] args) {
-        // Create a frame
-        JFrame frame = new JFrame("Connect Four Client");
-
-        // Create an instance of the applet
-        connectfourclient applet = new connectfourclient();
-        applet.isStandAlone = true;
-
-        // Get host
-        if (args.length == 1) applet.host = args[0];
-
-        // Add the applet instance to the frame
-        frame.getContentPane().add(applet, BorderLayout.CENTER);
-
-        // Invoke init() and start()
-        applet.init();
-        applet.start();
-
-        // Display the frame
-        frame.setSize(640, 600);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setVisible(true);
     }
 }

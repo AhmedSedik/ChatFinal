@@ -1,134 +1,50 @@
-/*
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Date;
 
-class connectfourserver extends JFrame implements connectfourconstraints {
+class GameSession extends JFrame implements connectfourconstraints {
 
-    JButton jbtConnect;
-
-    JTextField iport;
-
-    JTextArea jtaLog;
-
-    JLabel e;
-
-
-    private class ButtonListener implements ActionListener {
-        public void actionPerformed(ActionEvent e) {
-
-            System.out.println("INSIDE BUTTON LISTENER");
-            int port1 =Integer.parseInt(iport.getText());
-
-            listen(port1);
-
-        }
+    public GameSession() throws HeadlessException {
+        listen(5555);
     }
 
-    private void listen(int port1){
+    private void listen(int gameSessionPort){
 
-        System.out.println("BEGIN LISTEN METHOD");
         try {
-            // Create a server socket
-            jtaLog.append("WORK!!!!");
-            System.out.println("CONNECT");
-            ServerSocket serverSocket = new ServerSocket(port1);
-            System.out.println("DONE");
-            jtaLog.append(new Date() + ": Server started at socket 1234\n");
-
-            // Number a session
+            ServerSocket gameSessionSocket = new ServerSocket(gameSessionPort);
+            System.out.println("Game Session is waiting for clients to join on port: " + gameSessionPort);
             int sessionNo = 1;
 
             // Ready to create a session for every two players
             while (true) {
-                jtaLog.append(new Date() +
-                        ": Wait for players to join session " + sessionNo + '\n');
 
-                // Connect to player 1
-                System.out.println("GET P1");
-                Socket player1 = serverSocket.accept();
-                System.out.println("DONE");
-                jtaLog.append(new Date() + ": Player 1 joined session " +
-                        sessionNo + '\n');
-                jtaLog.append("Player 1's IP address" +
-                        player1.getInetAddress().getHostAddress() + '\n');
+                Socket player1 = gameSessionSocket.accept();
 
-                // Notify that the player is Player 1
+                System.out.println("Player 1 joined the game session.");
+
                 new DataOutputStream(
                         player1.getOutputStream()).writeInt(PLAYER1);
 
-                // Connect to player 2
-                Socket player2 = serverSocket.accept();
+                Socket player2 = gameSessionSocket.accept();
 
-                jtaLog.append(new Date() +
-                        ": Player 2 joined session " + sessionNo + '\n');
-                jtaLog.append("Player 2's IP address" +
-                        player2.getInetAddress().getHostAddress() + '\n');
+                System.out.println("Player 2 Joined the game session");
 
-                // Notify that the player is Player 2
                 new DataOutputStream(
                         player2.getOutputStream()).writeInt(PLAYER2);
 
-                // Display this session and increment session number
-                jtaLog.append(new Date() + ": Start a thread for session " +
-                        sessionNo++ + '\n');
+                System.out.println("Now starting game session thread....");
 
-                // Create a new task for this session of two players
                 HandleASession task = new HandleASession(player1, player2);
-
-                // Start the new thread
                 new Thread(task).start();
             }
         }
         catch(IOException ex) {
             System.err.println(ex);
         }
-    }
-
-
-
-    public static void main(String[] args) {
-
-
-        connectfourserver frame = new connectfourserver();
-    }
-
-
-    public connectfourserver() {
-
-        JPanel p1 = new JPanel();
-        JPanel p2 = new JPanel(new GridLayout(1,2));
-
-        jbtConnect= new JButton("Connect");
-        iport = new JTextField(4);
-        jtaLog = new JTextArea();
-        e = new JLabel("Port:");
-
-        p1.add(jtaLog);
-        p2.add(jbtConnect);
-        p2.add(e);
-        p2.add(iport);
-
-        jtaLog.append("TEsting\n");
-        add(p1, BorderLayout.CENTER);
-        add(p2, BorderLayout.SOUTH);
-
-        jbtConnect.addActionListener(new ButtonListener());
-
-
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        setSize(500, 700);
-        setTitle("Connect Four Server");
-        setVisible(true);
-
     }
 }
 
@@ -140,17 +56,10 @@ class HandleASession implements Runnable, connectfourconstraints {
     // Create and initialize cells
     private char[][] cell =  new char[6][7];
 
-    private DataInputStream fromPlayer1;
-    private DataOutputStream toPlayer1;
-    private DataInputStream fromPlayer2;
-    private DataOutputStream toPlayer2;
 
-    // Continue to play
     private boolean continueToPlay = true;
 
-    */
-/** Construct a thread *//*
-
+    /** Construct a thread */
     public HandleASession(Socket player1, Socket player2) {
         this.player1 = player1;
         this.player2 = player2;
@@ -161,9 +70,7 @@ class HandleASession implements Runnable, connectfourconstraints {
                 cell[i][j] = ' ';
     }
 
-    */
-/** Implement the run() method for the thread *//*
-
+    /** Implement the run() method for the thread */
     public void run() {
         try {
             // Create data input and output streams
@@ -176,12 +83,12 @@ class HandleASession implements Runnable, connectfourconstraints {
             DataOutputStream toPlayer2 = new DataOutputStream(
                     player2.getOutputStream());
 
-            // Write anything to notify player 1 to start
-            // This is just to let player 1 know to start
+            /**Write anything to notify player 1 to start
+            This is just to let player 1 know to start*/
             toPlayer1.writeInt(1);
 
-            // Continuously serve the players and determine and report
-            // the game status to the players
+            /** Continuously serve the players and determine and report
+             the game status to the players*/
             while (true) {
                 // Receive a move from player 1
                 int row = fromPlayer1.readInt();
@@ -237,18 +144,14 @@ class HandleASession implements Runnable, connectfourconstraints {
         }
     }
 
-    */
-/** Send the move to other player *//*
-
+    /** Send the move to other player */
     private void sendMove(DataOutputStream out, int row, int column)
             throws IOException {
         out.writeInt(row); // Send row index
         out.writeInt(column); // Send column index
     }
 
-    */
-/** Determine if the cells are all occupied *//*
-
+    /** Determine if the cells are all occupied */
     private boolean isFull() {
         for (int i = 0; i < 6; i++)
             for (int j = 0; j < 7; j++)
@@ -259,9 +162,7 @@ class HandleASession implements Runnable, connectfourconstraints {
         return true;
     }
 
-    */
-/*Determine if the player with the specified token wins *//*
-
+    /*Determine if the player with the specified token wins */
     private boolean isWon(int row, int column, char token) {
 
         // TEST BOARD VALUES
@@ -311,4 +212,4 @@ class HandleASession implements Runnable, connectfourconstraints {
         }
         return false;
     }
-}*/
+}

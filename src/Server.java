@@ -16,69 +16,62 @@ import java.util.Date;
  * The server that can be run both as a console application or a GUI
  */
 public class Server {
-    // a unique ID for each connection
+
     public int uniqueId;
-    // an ArrayList to keep the list of the Client
+
     private ArrayList<ClientThread> clients;
-    //ArrayList for the logged In uUsers
+
     private ArrayList<String> onlineUsers;
-    // if I am in a GUI
+
     private ServerGUI serverGUI;
-    // to display time
+
     private SimpleDateFormat simpleDateFormat;
-    // the port number to listen forx` connection
+
     private int port;
-    // the boolean that will be turned off to stop the server
+
     public boolean keepGoing;
-    //the csv File
+
     public static File users;
 
     public boolean connected;
 
-
-    /*
-     *  server constructor that receive the port to listen to for connection as parameter
-     *  in console
-     */
     public Server(int port) {
         this(port, null);
     }
 
     public Server(int port, ServerGUI serverGUI) {
-        // GUI or not
+
         this.serverGUI = serverGUI;
-        // the port
+
         this.port = port;
-        // to display hh:mm:ss
+
         simpleDateFormat = new SimpleDateFormat("HH:mm:ss");
-        // ArrayList for the Client list
+
         clients = new ArrayList<ClientThread>();
-        //could be also ArrayList
+
         onlineUsers = new ArrayList<>();
     }
 
     public void start() {
         keepGoing = true;
-        /* create socket server and wait for connection requests */
+
         try {
-            // the socket used by the server
             ServerSocket serverSocket = new ServerSocket(port);
 
-            // infinite loop to wait for connections
             while (keepGoing) {
-                // format message saying we are waiting
+
                 display("Server waiting for Clients on port " + port + ".");
 
                 Socket socket = serverSocket.accept();    // accept connection
-                // if I was asked to stop
+
                 if (!keepGoing)
                     break;
-                ClientThread thread = new ClientThread(socket);  // make a thread of it
-                clients.add(thread);                            // save it in the ArrayList
+
+                ClientThread thread = new ClientThread(socket);
+                clients.add(thread);
 
                 thread.start();
             }
-            // I was asked to stop
             try {
                 serverSocket.close();
                 for (int i = 0; i < clients.size(); ++i) {
@@ -88,31 +81,24 @@ public class Server {
                         clientThread.sOutput.close();
                         clientThread.socket.close();
                     } catch (IOException ioE) {
-                        // not much I can do
                     }
                 }
             } catch (Exception e) {
                 display("Exception closing the server and clients: " + e);
             }
         }
-        // something went bad
         catch (IOException e) {
             String msg = simpleDateFormat.format(new Date()) + " Exception on new ServerSocket: " + e + "\n";
             display(msg);
         }
     }
 
-    /*
-     * For the GUI to stop the server
-     */
+
     protected void stop() {
         keepGoing = false;
-        // connect to myself as Client to exit statement
-        // Socket socket = serverSocket.accept();
         try {
             new Socket("localhost", port);
         } catch (Exception e) {
-            // nothing I can really do
         }
     }
 
@@ -140,8 +126,6 @@ public class Server {
         else
             serverGUI.appendRoom(fullMessage);     // append in the room window
 
-        // we loop in reverse order in case we would have to remove a Client
-        // because it has disconnected
         for (int i = clients.size(); --i >= 0; ) {
             ClientThread clientThread = clients.get(i);
             // try to write to the Client if it fails remove it from the list
@@ -186,12 +170,6 @@ public class Server {
         }
     }
 
-    /*
-     *  To run as a console application just open a console window and:
-     * > java Server
-     * > java Server portNumber
-     * If the port number is not specified 1500 is used
-     */
     public static void main(String[] args) {
 
         // start server on port 1500 unless a PortNumber is specified
@@ -234,15 +212,9 @@ public class Server {
         ChatMessage message;
         //login status
         boolean loggedIn;
-
-
         String date;
-
-
         // Constructor
         ClientThread(Socket socket) {
-
-
             users = new File("users.csv");
             // a unique id
             id = ++uniqueId;
@@ -263,7 +235,11 @@ public class Server {
                     registerUser();
                 } else if (userChoice.equalsIgnoreCase("/Login")) {
                     userLogin();
-                } else {
+                }
+                else if (userChoice.equalsIgnoreCase("playGame")){
+                    //PLAY GAME
+                }
+                else {
                     display("Failed to Login or Register");
                 }
 
@@ -344,7 +320,7 @@ public class Server {
                         String userFROM3 = this.username;
                         writeMsgToUser("connect4",userTO3);
                         writeMsgToUser("connect4",userFROM3);
-                        startGame(userTO3,userFROM3);
+                        startGame();
                 }
             }
             // remove myself from the arrayList containing the list of the
@@ -495,7 +471,6 @@ public class Server {
                 close();
                 return false;
             }
-            // write the message to the stream
             try {
                 ClientThread clientThread = findByUsername(username);
                 ObjectOutputStream out = clientThread.sOutput;
@@ -509,9 +484,7 @@ public class Server {
             }
             return true;
         }
-
     }
-
 
     //TODO better have interface also for Remove and Kick Clients
     void loggedClients() {
@@ -528,8 +501,8 @@ public class Server {
 
     }
 
-    ClientThread findByUsername(String username){
-        for(ClientThread clientThread :clients){
+    public ClientThread findByUsername(String username){
+        for(ClientThread clientThread : clients){
             if (clientThread.username.equals(username))
                 return clientThread;
         }
@@ -546,184 +519,7 @@ public class Server {
         }
     }
 
-    void startGame(String user1, String user2){
-        Socket player1 = findByUsername(user1).socket;
-        Socket player2 = findByUsername(user2).socket;
-
-        HandleASession task = new HandleASession(player1, player2);
-
-        // Start the new thread
-        new Thread(task).start();
-
-    }
-
-    class HandleASession implements Runnable, connectfourconstraints {
-        private Socket player1;
-        private Socket player2;
-
-        // Create and initialize cells
-        private char[][] cell =  new char[6][7];
-
-        private DataInputStream fromPlayer1;
-        private DataOutputStream toPlayer1;
-        private DataInputStream fromPlayer2;
-        private DataOutputStream toPlayer2;
-
-        // Continue to play
-        private boolean continueToPlay = true;
-
-        /** Construct a thread */
-        public HandleASession(Socket player1, Socket player2) {
-            this.player1 = player1;
-            this.player2 = player2;
-
-            // Initialize cells
-            for (int i = 0; i < 6; i++)
-                for (int j = 0; j < 7; j++)
-                    cell[i][j] = ' ';
-        }
-
-        /** Implement the run() method for the thread */
-        public void run() {
-            try {
-                // Create data input and output streams
-                DataInputStream fromPlayer1 = new DataInputStream(
-                        player1.getInputStream());
-                DataOutputStream toPlayer1 = new DataOutputStream(
-                        player1.getOutputStream());
-                DataInputStream fromPlayer2 = new DataInputStream(
-                        player2.getInputStream());
-                DataOutputStream toPlayer2 = new DataOutputStream(
-                        player2.getOutputStream());
-
-                // Write anything to notify player 1 to start
-                // This is just to let player 1 know to start
-                toPlayer1.writeInt(1);
-
-                // Continuously serve the players and determine and report
-                // the game status to the players
-                while (true) {
-                    // Receive a move from player 1
-                    int row = fromPlayer1.readInt();
-                    int column = fromPlayer1.readInt();
-                    char token = 'r';
-
-                    cell[row][column] = 'r';
-
-                    // Check if Player 1 wins
-                    if (isWon(row, column, token)) {
-                        toPlayer1.writeInt(PLAYER1_WON);
-                        toPlayer2.writeInt(PLAYER1_WON);
-                        sendMove(toPlayer2, row, column);
-                        break; // Break the loop
-                    }
-                    else if (isFull()) { // Check if all cells are filled
-                        toPlayer1.writeInt(DRAW);
-                        toPlayer2.writeInt(DRAW);
-                        sendMove(toPlayer2, row, column);
-                        break;
-                    }
-                    else {
-                        // Notify player 2 to take the turn
-                        toPlayer2.writeInt(CONTINUE);
-
-                        // Send player 1's selected row and column to player 2
-                        sendMove(toPlayer2, row, column);
-                    }
-
-                    // Receive a move from Player 2
-                    row = fromPlayer2.readInt();
-                    column = fromPlayer2.readInt();
-                    cell[row][column] = 'b';
-
-                    // Check if Player 2 wins
-                    if (isWon(row, column, token)) {
-                        toPlayer1.writeInt(PLAYER2_WON);
-                        toPlayer2.writeInt(PLAYER2_WON);
-                        sendMove(toPlayer1, row, column);
-                        break;
-                    }
-                    else {
-                        // Notify player 1 to take the turn
-                        toPlayer1.writeInt(CONTINUE);
-
-                        // Send player 2's selected row and column to player 1
-                        sendMove(toPlayer1, row, column);
-                    }
-                }
-            }
-            catch(IOException ex) {
-                System.err.println(ex);
-            }
-        }
-
-        /** Send the move to other player */
-        private void sendMove(DataOutputStream out, int row, int column)
-                throws IOException {
-            out.writeInt(row); // Send row index
-            out.writeInt(column); // Send column index
-        }
-
-        /** Determine if the cells are all occupied */
-        private boolean isFull() {
-            for (int i = 0; i < 6; i++)
-                for (int j = 0; j < 7; j++)
-                    if (cell[i][j] == ' ')
-                        return false; // At least one cell is not filled
-
-            // All cells are filled
-            return true;
-        }
-
-        /*Determine if the player with the specified token wins */
-        private boolean isWon(int row, int column, char token) {
-
-            // TEST BOARD VALUES
-            for (int x = 0; x < 5; x++) {
-                for (int y = 0; y < 6; y++) {
-                    System.out.print(cell[x][y]);
-                }
-                System.out.println();
-            }
-
-            //Horizontal
-
-            for (int x = 0; x < 6; x++) {
-                for (int y = 0; y < 3; y++) {
-                    if (cell[x][y] == token && cell[x][y+1] == token && cell[x][y+2] == token && cell[x][y+3] == token) {
-                        return true;
-                    }
-                }
-            }
-            //Vertical
-
-            for (int x = 0; x < 3; x++) {
-                for (int y = 0; y < 7; y++) {
-                    if (cell[x][y] == token && cell[x+1][y] == token && cell[x+2][y] == token && cell[x+3][y] == token) {
-                        return true;
-                    }
-                }
-            }
-
-
-            //Diagonal wins
-            for (int x = 0; x < 3; x++) {
-                for (int y = 0; y < 6; y++) {
-                    if (cell[x][y] == token && cell[x+1][y+1] == token && cell[x+2][y+2] == token && cell[x+3][y+3] == token) {
-                        return true;
-                    }
-                }
-            }
-
-            //Other diagonal wins
-            for (int x = 0; x < 3; x++) {
-                for (int y = 3; y < 7; y++) {
-                    if (cell[x][y] == token && cell[x+1][y-1] == token && cell[x+2][y-2] == token && cell[x+3][y-3] == token) {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
+    void startGame(){
+        GameSession gameSession = new GameSession();
     }
 }

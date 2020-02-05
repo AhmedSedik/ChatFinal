@@ -29,6 +29,8 @@ public class Server {
 
     private int port;
 
+    private String intiator = "";
+
     public boolean keepGoing;
 
     public static File users;
@@ -204,6 +206,7 @@ public class Server {
         Socket socket;
         ObjectInputStream sInput;
         ObjectOutputStream sOutput;
+        String intiator = "";
         // my unique id (used in disconnecting)
         int id;
         // the Username of the Client
@@ -262,8 +265,19 @@ public class Server {
             boolean keepGoing = true;
             while (keepGoing) {
                 // read a String (which is an object)
+                System.out.println(username +"in while");
+
+
                 try {
+                    
+                    if(!intiator.equals("")) {
+                        findByUsername(intiator).sOutput.flush();
+                        findByUsername(intiator).sOutput.reset();
+                        System.out.println(findByUsername(intiator).socket.isConnected());
+                    }
                     message = (ChatMessage) sInput.readObject();
+
+
                 } catch (IOException e) {
                     // in case client quit while server running reading stream
                     display(username + " Exception reading Streams: " + e);
@@ -311,11 +325,12 @@ public class Server {
                         String[] msgSplit = msg.split("-");
                         String response = msgSplit[0];
                         String userTO = msgSplit[1];
+                        intiator = intiator + userTO;
                         String userFROM = this.message.getSender();
                         writeMsgToUser(response + "-" +userFROM, userTO);
                         break;
 
-                    case ChatMessage.PLAY:
+                    case ChatMessage.PLAY_CONNECT_FOUR:
                         String userTO3 = this.message.getMessage();
                         String userFROM3 = this.username;
                         writeMsgToUser("connect4",userTO3);

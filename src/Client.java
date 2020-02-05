@@ -14,31 +14,19 @@ import java.util.Scanner;
  */
 public class Client {
 
-    //TODO Register user
-
-    // for I/O
     private ObjectInputStream sInput;
-    // to read from the socket
+
     private ObjectOutputStream sOutput;
-    // to write on the socket
+
     private Socket socket;
 
-    // if I use a GUI or not
     private ClientGUI clientGUI;
 
-    // the server, the port and the username
     private String server, username, password;
 
     private int port;
 
-    /*
-     *  Constructor called by console mode
-     *  server: the server address
-     *  port: the port number
-     *  username: the username
-     */
     Client(String server, int port, String username, String password) {
-        // which calls the common constructor with the GUI set to null
         this(server, port, username, password, null);
     }
 
@@ -61,7 +49,6 @@ public class Client {
     public boolean start() {
         // try to connect to the server
         try {
-
             socket = new Socket(server, port);
         }
         // if it failed not much I can so
@@ -73,9 +60,6 @@ public class Client {
 
         String msg = "Attempting Conneting to:  " + socket.getInetAddress() + ":" + socket.getPort();
         display(msg);
-
-
-
 
         /* Creating both Data Stream */
         try {
@@ -227,7 +211,7 @@ public class Client {
 
         public void startGame() {
             // Create a frame
-            JFrame frame = new JFrame("Connect Four Client");
+            JFrame frame = new JFrame("Connect Four" + " - " + username);
             // Create an instance of the applet
             connectfourclient applet = new connectfourclient();
 
@@ -240,7 +224,7 @@ public class Client {
 
             // Display the frame
             frame.setSize(640, 600);
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             frame.setVisible(true);
         }
 
@@ -278,9 +262,9 @@ public class Client {
                         clientGUI.appendClients(msg.substring(6));
                     } else if (msg.startsWith("play")) {
                         clientGUI.playRequest(msg);
-                    } else if (msg.startsWith("yes")) {
+                    } else if (msg.startsWith("true")) {
                         clientGUI.playResponse(msg);
-                    } else if (msg.startsWith("no")) {
+                    } else if (msg.startsWith("false")) {
                         clientGUI.playResponse(msg);
                     } else if (msg.startsWith("connect4")) {
                         startGame();

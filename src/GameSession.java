@@ -20,7 +20,7 @@ class GameSession extends JFrame implements connectfourconstraints {
             int sessionNo = 1;
 
             // Ready to create a session for every two players
-            while (true) {
+
 
                 Socket player1 = gameSessionSocket.accept();
 
@@ -39,8 +39,9 @@ class GameSession extends JFrame implements connectfourconstraints {
                 System.out.println("Now starting game session thread....");
 
                 HandleASession task = new HandleASession(player1, player2);
+
                 new Thread(task).start();
-            }
+
         }
         catch(IOException ex) {
             System.err.println(ex);

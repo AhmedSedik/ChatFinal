@@ -162,17 +162,17 @@ public class ClientGUI extends JFrame implements ActionListener {
         int result = JOptionPane.showConfirmDialog(this,
                 "player " + senderUsername + " has sent you a request to play Connect Four.","Game Request", JOptionPane.YES_NO_OPTION);
         if(result == JOptionPane.YES_OPTION) {
-            client.sendMessage(new ChatMessage(ChatMessage.REPSONE_PLAY_REQUEST, "yes"+ "-" + senderUsername, username));
+            client.sendMessage(new ChatMessage(ChatMessage.REPSONE_PLAY_REQUEST, "true"+ "-" + senderUsername, username));
         }
         else{
-            client.sendMessage(new ChatMessage(ChatMessage.REPSONE_PLAY_REQUEST, "no"+"-"+senderUsername,username));
+            client.sendMessage(new ChatMessage(ChatMessage.REPSONE_PLAY_REQUEST, "false" + "-" + senderUsername,username));
         }
     }
 
     void playResponse(String response){
         String[] parts = response.split("-");
         String senderUsername = parts[1];
-        client.sendMessage(new ChatMessage(ChatMessage.PLAY, senderUsername, username));
+        client.sendMessage(new ChatMessage(ChatMessage.PLAY_CONNECT_FOUR, senderUsername, username));
     }
 
     void loginAccepted() {
@@ -196,7 +196,8 @@ public class ClientGUI extends JFrame implements ActionListener {
         chatTextField.requestFocus();
     }
 
-    void registerFailed() {
+    void registerFailed()
+    {
         JOptionPane.showMessageDialog(this, "Username already Taken!");
 
     }
@@ -331,6 +332,7 @@ public class ClientGUI extends JFrame implements ActionListener {
         // if it is the Logout button
         if (choice == logout) {
             client.sendMessage(new ChatMessage(ChatMessage.LOGOUT, "",""));
+            System.out.println("User logged Out!");
             this.setTitle("Chat Client");
             return;
         }
@@ -342,6 +344,7 @@ public class ClientGUI extends JFrame implements ActionListener {
         if (choice == btn_play) {
             String selectedUser = list1.getSelectedValue();
               client.sendMessage(new ChatMessage(ChatMessage.PLAY_REQUEST,selectedUser,username));
+
 
         }
 

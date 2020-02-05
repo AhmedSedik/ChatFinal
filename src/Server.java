@@ -9,12 +9,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-/**
- * @author zozzy on 31.12.19
- */
-/*
- * The server that can be run both as a console application or a GUI
- */
 public class Server {
 
     public int uniqueId;
@@ -269,7 +263,7 @@ public class Server {
 
 
                 try {
-                    
+
                     if(!intiator.equals("")) {
                         findByUsername(intiator).sOutput.flush();
                         findByUsername(intiator).sOutput.reset();

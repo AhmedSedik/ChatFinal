@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Arrays;
 
 class GameSession extends JFrame implements connectfourconstraints {
 
@@ -66,9 +67,9 @@ class HandleASession implements Runnable, connectfourconstraints {
         this.player2 = player2;
 
         // Initialize cells
-        for (int i = 0; i < 6; i++)
-            for (int j = 0; j < 7; j++)
-                cell[i][j] = ' ';
+        for (char[] row: cell)
+            Arrays.fill(row, ' ');
+
     }
 
     /** Implement the run() method for the thread */
@@ -99,7 +100,7 @@ class HandleASession implements Runnable, connectfourconstraints {
                 cell[row][column] = 'r';
 
                 // Check if Player 1 wins
-                if (isWon(row, column, token)) {
+                if (checkWin('r')) {
                     toPlayer1.writeInt(PLAYER1_WON);
                     toPlayer2.writeInt(PLAYER1_WON);
                     sendMove(toPlayer2, row, column);
@@ -125,7 +126,7 @@ class HandleASession implements Runnable, connectfourconstraints {
                 cell[row][column] = 'b';
 
                 // Check if Player 2 wins
-                if (isWon(row, column, token)) {
+                if (checkWin('b')) {
                     toPlayer1.writeInt(PLAYER2_WON);
                     toPlayer2.writeInt(PLAYER2_WON);
                     sendMove(toPlayer1, row, column);
@@ -163,54 +164,48 @@ class HandleASession implements Runnable, connectfourconstraints {
         return true;
     }
 
-    /*Determine if the player with the specified token wins */
-    private boolean isWon(int row, int column, char token) {
+    private boolean checkWin(char token) {
 
-        // TEST BOARD VALUES
-        for (int x = 0; x < 5; x++) {
-            for (int y = 0; y < 6; y++) {
-                System.out.print(cell[x][y]);
-            }
-            System.out.println();
-        }
-
-        //Horizontal
-
-        for (int x = 0; x < 6; x++) {
-            for (int y = 0; y < 3; y++) {
-                if (cell[x][y] == token && cell[x][y+1] == token && cell[x][y+2] == token && cell[x][y+3] == token) {
+        //horizontal
+        for (int row = 0; row < cell.length; row++) {
+            for (int col = 0; col < cell[row].length - 3; col++) {
+                if (cell[row][col] != ' ' && cell[row][col] == cell[row][col + 1]
+                        && cell[row][col] == cell[row][col + 2]
+                        && cell[row][col] == cell[row][col + 3])
                     return true;
-                }
-            }
-        }
-        //Vertical
-
-        for (int x = 0; x < 3; x++) {
-            for (int y = 0; y < 7; y++) {
-                if (cell[x][y] == token && cell[x+1][y] == token && cell[x+2][y] == token && cell[x+3][y] == token) {
-                    return true;
-                }
             }
         }
 
-
-        //Diagonal wins
-        for (int x = 0; x < 3; x++) {
-            for (int y = 0; y < 6; y++) {
-                if (cell[x][y] == token && cell[x+1][y+1] == token && cell[x+2][y+2] == token && cell[x+3][y+3] == token) {
+        //vertical
+        for (int col = 0; col < cell[0].length; col++) {
+            for (int row = 0; row < cell.length - 3; row++) {
+                if (cell[row][col] != ' ' && cell[row][col] == cell[row + 1][col]
+                        && cell[row][col] == cell[row + 2][col]
+                        && cell[row][col] == cell[row + 3][col])
                     return true;
-                }
             }
         }
 
-        //Other diagonal wins
-        for (int x = 0; x < 3; x++) {
-            for (int y = 3; y < 7; y++) {
-                if (cell[x][y] == token && cell[x+1][y-1] == token && cell[x+2][y-2] == token && cell[x+3][y-3] == token) {
+        //diagonal oben links
+        for (int row = 0; row < cell.length - 3; row++) {
+            for (int col = 0; col < cell[row].length - 3; col++) {
+                if (cell[row][col] != ' ' && cell[row][col] == cell[row + 1][col + 1]
+                        && cell[row][col] == cell[row + 2][col + 2]
+                        && cell[row][col] == cell[row + 3][col + 3])
                     return true;
-                }
+            }
+        }
+
+        //diagonal oben rechts
+        for (int row = 0; row < cell.length - 3; row++) {
+            for (int col = 3; col < cell[row].length; col++) {
+                if (cell[row][col] != ' ' && cell[row][col] == cell[row + 1][col - 1]
+                        && cell[row][col] == cell[row + 2][col - 2]
+                        && cell[row][col] == cell[row + 3][col - 3])
+                    return true;
             }
         }
         return false;
     }
+
 }

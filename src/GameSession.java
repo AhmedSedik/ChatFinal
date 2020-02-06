@@ -8,17 +8,18 @@ import java.util.Arrays;
 class GameSession extends JFrame implements connectfourconstraints {
 
      String user1, user2;
+     ServerSocket gameSessionSocket;
 
-    public GameSession(String user1, String user2) throws HeadlessException {
+    public GameSession(String user1, String user2, ServerSocket gameSessionSocket) throws HeadlessException {
         this.user1 = user1;
         this.user2 = user2;
+        this.gameSessionSocket = gameSessionSocket;
         listen();
     }
 
     private void listen(){
 
         try {
-            ServerSocket gameSessionSocket = new ServerSocket(5555);
             System.out.println("Game Session is waiting for clients to join on port: " + 5555);
             int sessionNo = 1;
 
@@ -29,16 +30,23 @@ class GameSession extends JFrame implements connectfourconstraints {
 
                 System.out.println("Player 1 joined the game session.");
 
-                new DataOutputStream(
-                        player1.getOutputStream()).writeInt(PLAYER1);
+                DataOutputStream dataOutputStream =new DataOutputStream(
+                        player1.getOutputStream());
 
-            new ObjectOutputStream(player1.getOutputStream()).writeObject(user1);
+                dataOutputStream.writeInt(PLAYER1);
+                dataOutputStream.writeUTF(user1);
+                dataOutputStream.writeUTF(user2);
+
                 Socket player2 = gameSessionSocket.accept();
 
                 System.out.println("Player 2 Joined the game session");
 
-                new DataOutputStream(
-                        player2.getOutputStream()).writeInt(PLAYER2);
+                DataOutputStream dataOutputStream2 =new DataOutputStream(
+                    player2.getOutputStream());
+
+                dataOutputStream2.writeInt(PLAYER2);
+                dataOutputStream2.writeUTF(user2);
+                dataOutputStream2.writeUTF(user1);
 
                 System.out.println("Now starting game session thread....");
 

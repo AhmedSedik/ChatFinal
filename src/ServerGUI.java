@@ -3,6 +3,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.IOException;
 
 /**
  * @author zozzy on 31.12.19
@@ -134,7 +135,11 @@ public class ServerGUI extends JFrame implements ActionListener, WindowListener 
                 return;
             }
             // create a new Server
-            server = new Server(port, this);
+            try {
+                server = new Server(port, this);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             // and start it as a thread
             new ServerRunning().start();
             stopStart.setText("Stop");

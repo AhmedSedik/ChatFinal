@@ -37,11 +37,13 @@ public class Server {
 
     public boolean connected;
 
-    public Server(int port) {
+    public ServerSocket gameSessionSocket = new ServerSocket(5555);
+
+    public Server(int port) throws IOException {
         this(port, null);
     }
 
-    public Server(int port, ServerGUI serverGUI) {
+    public Server(int port, ServerGUI serverGUI) throws IOException {
 
         this.serverGUI = serverGUI;
 
@@ -172,7 +174,7 @@ public class Server {
         }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
         // start server on port 1500 unless a PortNumber is specified
         int portNumber = 1500;
@@ -535,7 +537,7 @@ public class Server {
     }
 
     void startGame(String user1, String user2){
-        GameSession gameSession = new GameSession(user1,user2);
+        GameSession gameSession = new GameSession(user1,user2, gameSessionSocket);
 
     }
 }

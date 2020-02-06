@@ -152,19 +152,21 @@ public class ConnectFourcClient extends JApplet
         try {
             // Get notification from the server
             int player = fromServer.readInt();
+            String player2 = fromServer.readUTF();
+            String username = fromServer.readUTF();
 
             // Am I player 1 or 2?
             if (player == PLAYER1) {
                 myToken = 'r';
                 otherToken = 'b';
-                jlblTitle.setText("Player 1 with color red");
-                jlblStatus.setText("Waiting for player 2 to join");
+                jlblTitle.setText(username +": Your color is red");
+                jlblStatus.setText("Waiting for " + player2 +" to join");
 
                 // Receive startup notification from the server
                 fromServer.readInt(); // Whatever read is ignored
 
                 // The other player has joined
-                jlblStatus.setText("Player 2 has joined. I start first");
+                jlblStatus.setText(player2+ " has joined. You start first.");
 
                 // It is my turn
                 myTurn = true;
@@ -172,8 +174,8 @@ public class ConnectFourcClient extends JApplet
             else if (player == PLAYER2) {
                 myToken = 'b';
                 otherToken = 'r';
-                jlblTitle.setText("Player 2 with color blue");
-                jlblStatus.setText("Waiting for player 1 to move");
+                jlblTitle.setText(username + ": Your color is blue");
+                jlblStatus.setText("Waiting for " + player2 + " to make a move");
             } else if (player == 55) {
                 System.out.println("Disconnected");
 
@@ -232,10 +234,10 @@ public class ConnectFourcClient extends JApplet
             // Player 1 won, stop playing
             continueToPlay = false;
             if (myToken == 'r') {
-                jlblStatus.setText("I won! (red)");
+                jlblStatus.setText("I won!");
             }
             else if (myToken == 'b') {
-                jlblStatus.setText("Player 1 (red) has won!");
+                jlblStatus.setText("You lost!");
                 receiveMove();
             }
         }
@@ -243,10 +245,10 @@ public class ConnectFourcClient extends JApplet
             // Player 2 won, stop playing
             continueToPlay = false;
             if (myToken == 'b') {
-                jlblStatus.setText("I won! (blue)");
+                jlblStatus.setText("I won!");
             }
             else if (myToken == 'r') {
-                jlblStatus.setText("Player 2 (blue) has won!");
+                jlblStatus.setText("You lost!");
                 receiveMove();
             }
         }
@@ -261,7 +263,7 @@ public class ConnectFourcClient extends JApplet
         }
         else {
             receiveMove();
-            jlblStatus.setText("My turn");
+            jlblStatus.setText("Your turn");
             myTurn = true; // It is my turn
         }
     }
@@ -338,7 +340,7 @@ public class ConnectFourcClient extends JApplet
                     myTurn = false;
                     rowSelected = r;
                     columnSelected = column;
-                    jlblStatus.setText("Waiting for the other player to move");
+                    jlblStatus.setText("waiting for move....");
                     waiting = false; // Just completed a successful move
                 }
             }

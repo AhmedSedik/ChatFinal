@@ -3,48 +3,50 @@ import java.awt.*;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.Arrays;
 
 class GameSession extends JFrame implements connectfourconstraints {
 
      String user1, user2;
-    private ArrayList<HandleASession> gameClients;
+     ServerSocket gameSessionSocket;
 
-    Socket player1;
-    Socket player2;
-
-    public GameSession(String user1, String user2) throws HeadlessException {
+    public GameSession(String user1, String user2, ServerSocket gameSessionSocket) throws HeadlessException {
         this.user1 = user1;
         this.user2 = user2;
-        gameClients = new ArrayList<>();
+        this.gameSessionSocket = gameSessionSocket;
         listen();
     }
 
     private void listen(){
 
         try {
-            ServerSocket gameSessionSocket = new ServerSocket(5555);
             System.out.println("Game Session is waiting for clients to join on port: " + 5555);
             int sessionNo = 1;
 
             // Ready to create a session for every two players
 
 
-                 player1 = gameSessionSocket.accept();
+                Socket player1 = gameSessionSocket.accept();
 
                 System.out.println("Player 1 joined the game session.");
 
-                new DataOutputStream(
-                        player1.getOutputStream()).writeInt(PLAYER1);
+                DataOutputStream dataOutputStream =new DataOutputStream(
+                        player1.getOutputStream());
 
-            //new ObjectOutputStream(player1.getOutputStream()).writeObject(user1);
-                 player2 = gameSessionSocket.accept();
+                dataOutputStream.writeInt(PLAYER1);
+                dataOutputStream.writeUTF(user1);
+                dataOutputStream.writeUTF(user2);
+
+                Socket player2 = gameSessionSocket.accept();
 
                 System.out.println("Player 2 Joined the game session");
 
-                new DataOutputStream(
-                        player2.getOutputStream()).writeInt(PLAYER2);
+                DataOutputStream dataOutputStream2 =new DataOutputStream(
+                    player2.getOutputStream());
+
+                dataOutputStream2.writeInt(PLAYER2);
+                dataOutputStream2.writeUTF(user2);
+                dataOutputStream2.writeUTF(user1);
 
                 System.out.println("Now starting game session thread....");
 
@@ -63,6 +65,10 @@ class GameSession extends JFrame implements connectfourconstraints {
 class HandleASession implements Runnable, connectfourconstraints {
     private Socket player1;
     private Socket player2;
+    private String user1;
+    private String user2;
+
+
 
     // Create and initialize cells
     private char[][] cell =  new char[6][7];
@@ -115,9 +121,8 @@ class HandleASession implements Runnable, connectfourconstraints {
 
                 if ((row == 55)) {
                     sendInfo(toPlayer2,55);
-                    player1.close();
-                    player2.close();
-
+                } else if (column == 55) {
+                    sendInfo(toPlayer1, 55);
                 }else
                     cell[row][column] = 'r';
                 // Check if Player 1 wins
@@ -146,10 +151,9 @@ class HandleASession implements Runnable, connectfourconstraints {
                 column = fromPlayer2.readInt();
 
                 if ((row == 55)) {
-                    sendInfo(toPlayer1,55);
-                    player2.close();
-                    player1.close();
-
+                    sendInfo(toPlayer2,55);
+                } else if (column == 55) {
+                    sendInfo(toPlayer1, 55);
                 }else
                 // Check if Player 2 wins
                     cell[row][column] = 'b';

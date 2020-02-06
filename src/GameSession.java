@@ -52,6 +52,7 @@ class GameSession extends JFrame implements connectfourconstraints {
 
                 HandleASession task = new HandleASession(player1, player2);
 
+
                 new Thread(task).start();
 
         }
@@ -120,9 +121,11 @@ class HandleASession implements Runnable, connectfourconstraints {
 
 
                 if ((row == 55)) {
-                    sendInfo(toPlayer2,55);
+                    sendInfo(toPlayer2,55); sendInfo(toPlayer1,55);
+
                 } else if (column == 55) {
-                    sendInfo(toPlayer1, 55);
+                    sendInfo(toPlayer2, 55); sendInfo(toPlayer1,55);
+
                 }else
                     cell[row][column] = 'r';
                 // Check if Player 1 wins
@@ -152,8 +155,10 @@ class HandleASession implements Runnable, connectfourconstraints {
 
                 if ((row == 55)) {
                     sendInfo(toPlayer2,55);
+                    sendInfo(toPlayer1,55);
                 } else if (column == 55) {
                     sendInfo(toPlayer1, 55);
+                    sendInfo(toPlayer1,55);
                 }else
                 // Check if Player 2 wins
                     cell[row][column] = 'b';

@@ -89,8 +89,12 @@ public class ConnectFourcClient extends JApplet
         eMenuItem.setToolTipText("Disconnect From Game");
         //TODO close game window and disconnect from game server
         eMenuItem.addActionListener(e -> {
-            disconnect();
-           closeGameWindow();
+            try {
+                sendInfoToServer(55);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+            closeGameWindow();
         });
 
         fileMenu.add(eMenuItem);
@@ -120,12 +124,6 @@ public class ConnectFourcClient extends JApplet
         thread.start();
     }
     private void disconnect() {
-        try {
-            sendInfoToServer(55);//disconnect request
-
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
         try {
             if (fromServer != null)
                 fromServer.close();

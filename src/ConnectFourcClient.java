@@ -91,7 +91,6 @@ public class ConnectFourcClient extends JApplet
         eMenuItem.addActionListener(e -> {
             disconnect();
            closeGameWindow();
-
         });
 
         fileMenu.add(eMenuItem);
@@ -123,7 +122,7 @@ public class ConnectFourcClient extends JApplet
     private void disconnect() {
         try {
             sendInfoToServer(55);//disconnect request
-            sendInfoToServer(55);
+
         } catch (IOException ex) {
             ex.printStackTrace();
         }

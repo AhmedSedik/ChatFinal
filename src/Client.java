@@ -58,7 +58,7 @@ public class Client {
             return false;
         }
 
-        String msg = "Attempting Conneting to:  " + socket.getInetAddress() + ":" + socket.getPort();
+        String msg = "Attempting Connecting to:  " + socket.getInetAddress() + ":" + socket.getPort();
         display(msg);
 
         /* Creating both Data Stream */
@@ -222,11 +222,11 @@ public class Client {
             applet.init();
             applet.start();
 
-
             // Display the frame
             frame.setSize(640, 600);
             frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             frame.setVisible(true);
+            frame.setResizable(false);
         }
 
         public void run() {

@@ -46,13 +46,12 @@ public class ConnectFourcClient extends JApplet
     // Host name or ip
     public String host = "localhost";
 
+    Socket socket;
+
     /** Initialize UI */
     public void init() {
 
         createMenuBar();
-
-
-        
         // Panel p to hold cells
          p = new JPanel();
 
@@ -87,16 +86,11 @@ public class ConnectFourcClient extends JApplet
 
         var eMenuItem = new JMenuItem("Disconnect", exitIcon);
         eMenuItem.setMnemonic(KeyEvent.VK_E);
-        eMenuItem.setToolTipText("Disconnt From Game");
+        eMenuItem.setToolTipText("Disconnect From Game");
         //TODO close game window and disconnect from game server
         eMenuItem.addActionListener(e -> {
-            try {
-                sendInfoToServer(55);//disconnect request
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-//            Window win = SwingUtilities.getWindowAncestor(p);
-//            win.dispose();
+            disconnect();
+           closeGameWindow();
 
         });
 
@@ -106,10 +100,11 @@ public class ConnectFourcClient extends JApplet
         setJMenuBar(menuBar);
     }
 
+
     private void connectToServer() {
         try {
             // Create a socket to connect to the server
-            Socket socket = new Socket("localhost",5555);
+             socket = new Socket("localhost",5555);
 
             // Create an input stream to receive data from the server
             fromServer = new DataInputStream(socket.getInputStream());
@@ -125,7 +120,34 @@ public class ConnectFourcClient extends JApplet
         Thread thread = new Thread(this);
         thread.start();
     }
+    private void disconnect() {
+        try {
+            sendInfoToServer(55);//disconnect request
+            sendInfoToServer(55);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        try {
+            if (fromServer != null)
+                fromServer.close();
+        } catch (Exception e) {
+        } // not much else I can do
+        try {
+            if (toServer != null)
+                toServer.close();
+        } catch (Exception e) {
+        } // not much else I can do
+        try {
+            if (socket != null)
+                socket.close();
+        } catch (Exception e) {
+        } // not much else I can do
 
+    }
+    protected void closeGameWindow() {
+        Window win = SwingUtilities.getWindowAncestor(p);
+        win.dispose();
+    }
     public void run() {
         try {
             // Get notification from the server
@@ -201,7 +223,9 @@ public class ConnectFourcClient extends JApplet
 
         if (status == 55) {
             JOptionPane.showMessageDialog(this, "Connection lost");
-            System.out.println("10001");
+            closeGameWindow();
+            disconnect();
+            System.out.println("Disconnect");
         }else
 
         if (status == PLAYER1_WON) {

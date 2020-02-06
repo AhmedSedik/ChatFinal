@@ -3,15 +3,21 @@ import java.awt.*;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 class GameSession extends JFrame implements connectfourconstraints {
 
      String user1, user2;
+    private ArrayList<HandleASession> gameClients;
+
+    Socket player1;
+    Socket player2;
 
     public GameSession(String user1, String user2) throws HeadlessException {
         this.user1 = user1;
         this.user2 = user2;
+        gameClients = new ArrayList<>();
         listen();
     }
 
@@ -25,15 +31,15 @@ class GameSession extends JFrame implements connectfourconstraints {
             // Ready to create a session for every two players
 
 
-                Socket player1 = gameSessionSocket.accept();
+                 player1 = gameSessionSocket.accept();
 
                 System.out.println("Player 1 joined the game session.");
 
                 new DataOutputStream(
                         player1.getOutputStream()).writeInt(PLAYER1);
 
-            new ObjectOutputStream(player1.getOutputStream()).writeObject(user1);
-                Socket player2 = gameSessionSocket.accept();
+            //new ObjectOutputStream(player1.getOutputStream()).writeObject(user1);
+                 player2 = gameSessionSocket.accept();
 
                 System.out.println("Player 2 Joined the game session");
 
@@ -57,10 +63,6 @@ class GameSession extends JFrame implements connectfourconstraints {
 class HandleASession implements Runnable, connectfourconstraints {
     private Socket player1;
     private Socket player2;
-    private String user1;
-    private String user2;
-
-
 
     // Create and initialize cells
     private char[][] cell =  new char[6][7];
@@ -113,8 +115,9 @@ class HandleASession implements Runnable, connectfourconstraints {
 
                 if ((row == 55)) {
                     sendInfo(toPlayer2,55);
-                } else if (column == 55) {
-                    sendInfo(toPlayer1, 55);
+                    player1.close();
+                    player2.close();
+
                 }else
                     cell[row][column] = 'r';
                 // Check if Player 1 wins
@@ -143,9 +146,10 @@ class HandleASession implements Runnable, connectfourconstraints {
                 column = fromPlayer2.readInt();
 
                 if ((row == 55)) {
-                    sendInfo(toPlayer2,55);
-                } else if (column == 55) {
-                    sendInfo(toPlayer1, 55);
+                    sendInfo(toPlayer1,55);
+                    player2.close();
+                    player1.close();
+
                 }else
                 // Check if Player 2 wins
                     cell[row][column] = 'b';

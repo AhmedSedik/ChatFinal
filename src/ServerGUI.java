@@ -231,6 +231,7 @@ public class ServerGUI extends JFrame implements ActionListener, WindowListener 
      * If the user click the X button to close the application
      * I need to close the connection with the server to free the port
      */
+
     public void windowClosing(WindowEvent e) {
         // if my Server exist
         if (server != null) {

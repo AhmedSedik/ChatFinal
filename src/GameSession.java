@@ -1,23 +1,25 @@
 import javax.swing.*;
 import java.awt.*;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Arrays;
 
 class GameSession extends JFrame implements connectfourconstraints {
 
-    public GameSession() throws HeadlessException {
-        listen(5555);
+     String user1, user2;
+
+    public GameSession(String user1, String user2) throws HeadlessException {
+        this.user1 = user1;
+        this.user2 = user2;
+        listen();
     }
 
-    private void listen(int gameSessionPort){
+    private void listen(){
 
         try {
-            ServerSocket gameSessionSocket = new ServerSocket(gameSessionPort);
-            System.out.println("Game Session is waiting for clients to join on port: " + gameSessionPort);
+            ServerSocket gameSessionSocket = new ServerSocket(5555);
+            System.out.println("Game Session is waiting for clients to join on port: " + 5555);
             int sessionNo = 1;
 
             // Ready to create a session for every two players
@@ -30,6 +32,7 @@ class GameSession extends JFrame implements connectfourconstraints {
                 new DataOutputStream(
                         player1.getOutputStream()).writeInt(PLAYER1);
 
+            new ObjectOutputStream(player1.getOutputStream()).writeObject(user1);
                 Socket player2 = gameSessionSocket.accept();
 
                 System.out.println("Player 2 Joined the game session");
@@ -54,6 +57,10 @@ class GameSession extends JFrame implements connectfourconstraints {
 class HandleASession implements Runnable, connectfourconstraints {
     private Socket player1;
     private Socket player2;
+    private String user1;
+    private String user2;
+
+
 
     // Create and initialize cells
     private char[][] cell =  new char[6][7];
@@ -62,9 +69,10 @@ class HandleASession implements Runnable, connectfourconstraints {
     private boolean continueToPlay = true;
 
     /** Construct a thread */
-    public HandleASession(Socket player1, Socket player2) {
+    public HandleASession(Socket player1, Socket player2) throws IOException {
         this.player1 = player1;
         this.player2 = player2;
+
 
         // Initialize cells
         for (char[] row: cell)
@@ -85,6 +93,8 @@ class HandleASession implements Runnable, connectfourconstraints {
             DataOutputStream toPlayer2 = new DataOutputStream(
                     player2.getOutputStream());
 
+
+
             /**Write anything to notify player 1 to start
             This is just to let player 1 know to start*/
             toPlayer1.writeInt(1);
@@ -92,13 +102,21 @@ class HandleASession implements Runnable, connectfourconstraints {
             /** Continuously serve the players and determine and report
              the game status to the players*/
             while (true) {
+
+
                 // Receive a move from player 1
                 int row = fromPlayer1.readInt();
                 int column = fromPlayer1.readInt();
                 char token = 'r';
 
-                cell[row][column] = 'r';
 
+
+                if ((row == 55)) {
+                    sendInfo(toPlayer2,55);
+                } else if (column == 55) {
+                    sendInfo(toPlayer1, 55);
+                }else
+                    cell[row][column] = 'r';
                 // Check if Player 1 wins
                 if (checkWin('r')) {
                     toPlayer1.writeInt(PLAYER1_WON);
@@ -123,9 +141,14 @@ class HandleASession implements Runnable, connectfourconstraints {
                 // Receive a move from Player 2
                 row = fromPlayer2.readInt();
                 column = fromPlayer2.readInt();
-                cell[row][column] = 'b';
 
+                if ((row == 55)) {
+                    sendInfo(toPlayer2,55);
+                } else if (column == 55) {
+                    sendInfo(toPlayer1, 55);
+                }else
                 // Check if Player 2 wins
+                    cell[row][column] = 'b';
                 if (checkWin('b')) {
                     toPlayer1.writeInt(PLAYER2_WON);
                     toPlayer2.writeInt(PLAYER2_WON);
@@ -151,6 +174,12 @@ class HandleASession implements Runnable, connectfourconstraints {
             throws IOException {
         out.writeInt(row); // Send row index
         out.writeInt(column); // Send column index
+    }
+
+    private void sendInfo(DataOutputStream out, int code)
+    throws IOException{
+        out.writeInt(code);
+
     }
 
     /** Determine if the cells are all occupied */

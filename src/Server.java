@@ -9,6 +9,12 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
+/**
+ * @author zozzy on 31.12.19
+ */
+/*
+ * The server that can be run both as a console application or a GUI
+ */
 public class Server {
 
     public int uniqueId;
@@ -263,7 +269,7 @@ public class Server {
 
 
                 try {
-
+                    
                     if(!intiator.equals("")) {
                         findByUsername(intiator).sOutput.flush();
                         findByUsername(intiator).sOutput.reset();
@@ -289,7 +295,6 @@ public class Server {
                 ChatMessage chatMessage = new ChatMessage();
                 // Switch on the type of message receive
                 switch (this.message.getType()) {
-
                     case ChatMessage.MESSAGE:
                         broadcast(username + ": " + message);
                         break;
@@ -299,7 +304,7 @@ public class Server {
                         onlineUsers.remove(username);
                         keepGoing = false;
                         break;
-                    case ChatMessage.OnlineUsers:
+                    case ChatMessage.ONLINE_USERS:
                         // scan al the users connected
                         if (clients != null && clients.size() >= 1) {
                             for (int i = 0; i < clients.size(); i++) {
@@ -319,7 +324,7 @@ public class Server {
                         String[] msgSplit = msg.split("-");
                         String response = msgSplit[0];
                         String userTO = msgSplit[1];
-                        intiator = intiator + userTO;
+                        //intiator = intiator + userTO;
                         String userFROM = this.message.getSender();
                         writeMsgToUser(response + "-" +userFROM, userTO);
                         break;
@@ -329,7 +334,7 @@ public class Server {
                         String userFROM3 = this.username;
                         writeMsgToUser("connect4",userTO3);
                         writeMsgToUser("connect4",userFROM3);
-                        startGame();
+                        startGame(userTO3,userFROM3);
                 }
             }
             // remove myself from the arrayList containing the list of the
@@ -485,6 +490,7 @@ public class Server {
                 ObjectOutputStream out = clientThread.sOutput;
                 out.writeObject(msg);
                 out.flush();
+                //TODO sOutput flush
             }
             // if an error occurs, do not abort just inform the user
             catch (IOException e) {
@@ -528,7 +534,8 @@ public class Server {
         }
     }
 
-    void startGame(){
-        GameSession gameSession = new GameSession();
+    void startGame(String user1, String user2){
+        GameSession gameSession = new GameSession(user1,user2);
+
     }
 }

@@ -17,7 +17,7 @@ public class ChatMessage implements Serializable {
     // The different types of message sent by the Client
     // MESSAGE an ordinary message
     // LOGOUT to disconnect from the Server
-    static final int OnlineUsers = 0, MESSAGE = 1, LOGOUT = 2, REPSONE_PLAY_REQUEST = 4, PLAY_CONNECT_FOUR = 5;
+    static final int ONLINE_USERS = 0, MESSAGE = 1, LOGOUT = 2, REPSONE_PLAY_REQUEST = 4, PLAY_CONNECT_FOUR = 5;
 
     private int type;
 

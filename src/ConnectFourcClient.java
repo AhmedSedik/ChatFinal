@@ -5,7 +5,7 @@ import javax.swing.border.LineBorder;
 import java.io.*;
 import java.net.*;
 
-public class connectfourclient extends JApplet
+public class ConnectFourcClient extends JApplet
         implements Runnable, connectfourconstraints {
     // Indicate whether the player has the turn
     private boolean myTurn = false;
@@ -25,6 +25,7 @@ public class connectfourclient extends JApplet
     // Create and initialize a status labelf
     private JLabel jlblStatus = new JLabel();
 
+    JPanel p;
     // Indicate selected row and column by the current move
     private int rowSelected;
     private int columnSelected;
@@ -47,8 +48,15 @@ public class connectfourclient extends JApplet
 
     /** Initialize UI */
     public void init() {
+
+        createMenuBar();
+
+
+        
         // Panel p to hold cells
-        JPanel p = new JPanel();
+         p = new JPanel();
+
+
         p.setLayout(new GridLayout(6, 7, 0, 0));
         for (int i = 0; i < 6; i++)
             for (int j = 0; j < 7; j++)
@@ -68,6 +76,34 @@ public class connectfourclient extends JApplet
 
         // Connect to the server
         connectToServer();
+    }
+
+    private void createMenuBar() {
+        var menuBar = new JMenuBar();
+        var exitIcon = new ImageIcon("src/resources/exit.png");
+
+        var fileMenu = new JMenu("File");
+        fileMenu.setMnemonic(KeyEvent.VK_F);
+
+        var eMenuItem = new JMenuItem("Disconnect", exitIcon);
+        eMenuItem.setMnemonic(KeyEvent.VK_E);
+        eMenuItem.setToolTipText("Disconnt From Game");
+        //TODO close game window and disconnect from game server
+        eMenuItem.addActionListener(e -> {
+            try {
+                sendInfoToServer(55);//disconnect request
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+//            Window win = SwingUtilities.getWindowAncestor(p);
+//            win.dispose();
+
+        });
+
+        fileMenu.add(eMenuItem);
+        menuBar.add(fileMenu);
+
+        setJMenuBar(menuBar);
     }
 
     private void connectToServer() {
@@ -116,6 +152,9 @@ public class connectfourclient extends JApplet
                 otherToken = 'r';
                 jlblTitle.setText("Player 2 with color blue");
                 jlblStatus.setText("Waiting for player 1 to move");
+            } else if (player == 55) {
+                System.out.println("Disconnected");
+
             }
 
             // Continue to play
@@ -150,10 +189,20 @@ public class connectfourclient extends JApplet
         toServer.writeInt(columnSelected); // Send the selected column
     }
 
+    private void sendInfoToServer(int message) throws IOException {
+        toServer.writeInt(message);
+        toServer.writeInt(message);
+
+    }
     /** Receive info from the server */
     private void receiveInfoFromServer() throws IOException {
         // Receive game status
         int status = fromServer.readInt();
+
+        if (status == 55) {
+            JOptionPane.showMessageDialog(this, "Connection lost");
+            System.out.println("10001");
+        }else
 
         if (status == PLAYER1_WON) {
             // Player 1 won, stop playing

@@ -195,7 +195,7 @@ public class Client {
             }
             // message WhoIsIn
             else if (msg.equalsIgnoreCase("WHOISIN")) {
-                client.sendMessage(new ChatMessage(ChatMessage.OnlineUsers, "", ""));
+                client.sendMessage(new ChatMessage(ChatMessage.ONLINE_USERS, "", ""));
             } else {                // default to ordinary message
                 client.sendMessage(new ChatMessage(ChatMessage.MESSAGE, msg, ""));
             }
@@ -213,7 +213,7 @@ public class Client {
             // Create a frame
             JFrame frame = new JFrame("Connect Four" + " - " + username);
             // Create an instance of the applet
-            connectfourclient applet = new connectfourclient();
+            ConnectFourcClient applet = new ConnectFourcClient();
 
             // Add the applet instance to the frame
             frame.getContentPane().add(applet, BorderLayout.CENTER);
@@ -221,6 +221,7 @@ public class Client {
             // Invoke init() and start()
             applet.init();
             applet.start();
+
 
             // Display the frame
             frame.setSize(640, 600);
@@ -262,6 +263,10 @@ public class Client {
                         clientGUI.appendClients(msg.substring(6));
                     } else if (msg.startsWith("play")) {
                         clientGUI.playRequest(msg);
+                    } else if (msg.startsWith("userbusy")) {
+
+                        clientGUI.RequestRejected(msg);
+
                     } else if (msg.startsWith("true")) {
                         clientGUI.playResponse(msg);
                     } else if (msg.startsWith("false")) {
@@ -285,3 +290,6 @@ public class Client {
         }
     }
 }
+//TODO player username has won Dialogue then vote to play again or exit / chat box at the end with text field / menu for exit or so
+//TODO login refactoring and styling
+// Chomp integration

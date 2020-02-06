@@ -20,8 +20,8 @@ public class ClientGUI extends JFrame implements ActionListener {
     private boolean loginFailed = false;
 
     //label of the message
-    JLabel label;
-    String username;
+    private JLabel label;
+    private String username;
     //holds username
     private JTextField usernameField;
     //password field
@@ -175,6 +175,11 @@ public class ClientGUI extends JFrame implements ActionListener {
         client.sendMessage(new ChatMessage(ChatMessage.PLAY_CONNECT_FOUR, senderUsername, username));
     }
 
+    void RequestRejected(String response) {
+        String[] parts = response.split("-");
+        String senderUsername = parts[1];
+        JOptionPane.showMessageDialog(this, "User " + senderUsername +"Busy");
+    }
     void loginAccepted() {
         JOptionPane.showMessageDialog(this, "Login Accepted");
         this.setTitle("Chat Client" + " ("+username+")");
@@ -298,7 +303,7 @@ public class ClientGUI extends JFrame implements ActionListener {
         frameOnlineUsers.setLayout(null);
         frameOnlineUsers.setVisible(true);
 
-        client.sendMessage(new ChatMessage(ChatMessage.OnlineUsers, "",""));
+        client.sendMessage(new ChatMessage(ChatMessage.ONLINE_USERS, "",""));
 
         list1.addListSelectionListener(new ListSelectionListener() {
             @Override
@@ -357,6 +362,7 @@ public class ClientGUI extends JFrame implements ActionListener {
         // this the only text coming from the ChatTextField
         if (connected && !loginFailed) {
             // just have to send the message
+
             client.sendMessage(new ChatMessage(ChatMessage.MESSAGE, chatTextField.getText(),""));
             chatTextField.setText("");
             return;
@@ -378,7 +384,7 @@ public class ClientGUI extends JFrame implements ActionListener {
      * @param jUsername the Textfield of user name (register or login)
      * @param jPass the Textfield of the password (register or login)
      */
-    void loginRegisterServer(JTextField jUsername, JPasswordField jPass) {
+    private void loginRegisterServer(JTextField jUsername, JPasswordField jPass) {
         String username = jUsername.getText().trim();
         String password = String.valueOf(jPass.getPassword());
         this.username = username;
